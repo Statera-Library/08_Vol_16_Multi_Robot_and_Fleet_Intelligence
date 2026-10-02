@@ -1,0 +1,447 @@
+**Volume 16 Multi Robot and Fleet Intelligence**
+
+# 01. Fleet Management Fundamentals
+
+## 01.01 Fleet Management System FMS Architecture Overview
+
+![](images/image1.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 관리 시스템(Fleet Management System, FMS)은 여러 대의 자율 로봇(Autonomous Robot)을 하나의 통합된 운영 자원으로 조정하는 상위 감독 소프트웨어 계층(Supervisory Software Layer)을 제공한다. 개별 로봇이 위치 추정(Localization), 인지(Perception), 내비게이션(Navigation), 장애물 회피(Obstacle Avoidance), 저수준 모션 실행(Low-Level Motion Execution)을 담당하는 반면, FMS는 임무(Mission), 로봇 가용성(Robot Availability), 교통 상태(Traffic Condition), 에너지 상태(Energy State), 고장(Fault), 공유 자원(Shared Resource)에 대한 플릿 전체 관점(Fleet-Wide View)을 유지한다. 이러한 역할 분리를 통해 자율 로봇은 자체적인 로컬 안전성(Local Safety)을 유지하면서 동시에 협조된 운영(Coordinated Operation)에 참여할 수 있다.
+
+FMS의 기본적인 아키텍처 목표(Architectural Objective)는 서로 독립적인 로봇 플랫폼(Robotic Platform)을 비즈니스 수준의 목표(Business-Level Objective)를 수행할 수 있는 조직화된 플릿(Organized Fleet)으로 전환하는 것이다. 창고 관리 시스템(Warehouse Management System, WMS), 제조 실행 시스템(Manufacturing Execution System, MES), 병원 정보 시스템(Hospital Information System), 물류 애플리케이션(Logistics Application)은 특정 로봇을 직접 선택하지 않고 운송 또는 서비스 작업을 요청할 수 있다. FMS는 이러한 요청을 임무(Mission)로 해석하고, 사용 가능한 로봇의 상태를 평가하여 적절한 자원을 할당한 후, 작업 완료 또는 복구(Recovery)까지 실행 과정을 감독한다.
+
+일반적인 FMS 아키텍처는 하나의 모놀리식 애플리케이션(Monolithic Application)이 아니라 서로 상호작용하는 여러 논리적 계층(Logical Layer)으로 이해할 수 있다. 엔터프라이즈 인터페이스(Enterprise Interface)는 외부 시스템에서 작업 요청을 수신하고, 임무 관리(Mission Management)는 이를 실행 가능한 작업으로 변환한다. 플릿 스케줄링(Fleet Scheduling)은 어떤 로봇이 작업을 수행할지 결정하고, 교통 관리(Traffic Management)는 공유 공간을 조정하며, 로봇 어댑터(Robot Adapter)는 이기종 플랫폼(Heterogeneous Platform)과 통신한다. 모니터링 서비스(Monitoring Service)는 운영 가시성(Operational Visibility)을 유지하고, 영구 저장소(Persistent Storage)는 설정, 임무, 이벤트, 텔레메트리(Telemetry), 과거 성능 데이터를 기록한다.
+
+아키텍처의 중심에는 전체 로봇 시스템의 운영 상태를 표현하는 플릿 상태 모델(Fleet State Model)이 존재한다. 각 로봇은 일반적으로 식별 정보(Identity), 위치 및 자세(Pose), 속도(Velocity), 운전 모드(Operating Mode), 배터리 상태(Battery State), 적재 상태(Payload Condition), 현재 임무(Current Mission), 내비게이션 상태(Navigation State), 고장 상태(Fault Status) 등의 정보를 제공한다. FMS는 이러한 정보를 지도(Map), 스테이션(Station), 엘리베이터(Elevator), 자동문(Door), 충전기(Charger), 제한 구역(Restricted Area), 교통 구역(Traffic Zone) 정보와 결합하여 전체 플릿 운영에 대한 일관된 상태 표현을 유지한다.
+
+임무 관리(Mission Management)는 비즈니스 요청(Business Request)과 로봇 수준의 동작(Robot-Level Action) 사이에 추상화 계층(Abstraction Layer)을 제공한다. 예를 들어 저장 구역에서 조립 스테이션으로 자재를 이동하라는 요청은 픽업(Pickup), 내비게이션(Navigation), 도킹(Docking), 적재 확인(Loading Confirmation), 운송(Transport), 하역(Unloading), 완료(Completion) 등의 연속된 작업으로 변환될 수 있다. 따라서 임무 실행(Mission Execution)은 단일 내비게이션 명령이 아니라 상태를 유지하는 워크플로(Stateful Workflow)로 동작한다. FMS는 진행 상태를 추적하고, 작업 실패, 자원 사용 불가 또는 운영 우선순위 변경이 발생할 경우 적절한 대응 방법을 결정해야 한다.
+
+작업 할당(Task Allocation)은 사용 가능한 각 임무를 어떤 로봇이 수행해야 하는지를 결정한다. 단순한 시스템에서는 가장 가까운 유휴 로봇(Idle Robot)을 선택할 수 있지만, 대규모 플릿에서는 거리, 예상 완료 시간(Estimated Completion Time), 배터리 수준, 적재 능력(Payload Capability), 로봇 유형, 혼잡도(Congestion), 충전 요구사항, 작업 우선순위 등을 함께 고려한다. 따라서 작업 할당은 플릿 규모와 이기종성(Heterogeneity)이 증가할수록 복잡해지는 최적화 문제(Optimization Problem)가 된다. 보다 발전된 방식에서는 경매(Auction), 할당 알고리즘(Assignment Algorithm), 수학적 최적화(Mathematical Optimization), 학습 기반 정책(Learned Policy) 등을 활용할 수 있다.
+
+교통 관리(Traffic Management)는 할당된 로봇들이 물리적 인프라(Physical Infrastructure)를 공유하는 방식을 제어함으로써 작업 할당을 보완한다. 복도(Corridor), 교차로(Intersection), 도킹 스테이션(Docking Station), 엘리베이터(Elevator), 자동문(Automatic Door), 적재 구역(Loading Area), 충전 스테이션(Charging Station)은 여러 로봇이 동시에 사용하려는 경합 자원(Contested Resource)이 될 수 있다. FMS는 예약(Reservation), 구역(Zone), 우선순위(Priority), 경로 제약(Route Constraint), 시간 기반 점유 규칙(Time-Dependent Occupancy Rule)을 통해 이러한 자원을 관리할 수 있다. 로컬 충돌 회피(Local Collision Avoidance)는 개별 로봇의 책임으로 유지되지만, 플릿 수준의 조정은 로컬 플래너(Local Planner)가 문제에 직면하기 전에 혼잡(Congestion)과 교착 상태(Deadlock)를 예방하는 것을 목표로 한다.
+
+통신 아키텍처(Communication Architecture)는 플릿 지능(Fleet Intelligence)을 개별 로봇 및 외부 시스템과 연결한다. 배치 환경의 요구사항에 따라 FMS는 지속적인 상태 업데이트를 위한 발행-구독 메시징(Publish-Subscribe Messaging), 설정 및 비즈니스 통합을 위한 요청-응답 인터페이스(Request-Response Interface), 경보 및 임무 상태 전환을 위한 비동기 이벤트 채널(Asynchronous Event Channel)을 사용할 수 있다. ROS 2, MQTT, REST와 다양한 플릿 API(Fleet API)는 텔레메트리, 명령, 트랜잭션(Transaction), 설정 데이터가 서로 다른 지연시간(Latency)과 신뢰성(Reliability)을 요구하기 때문에 하나의 시스템에서 함께 사용될 수 있다.
+
+로봇 인터페이스 계층(Robot Interface Layer)은 플릿이 여러 제조사의 플랫폼을 포함할 때 특히 중요하다. 상위 수준의 스케줄링 로직(Scheduling Logic)이 제조사별 전용 API에 직접 의존하도록 하는 대신, 어댑터(Adapter)를 이용하여 표준화된 플릿 명령(Standardized Fleet Command)을 로봇 고유 메시지로 변환하고 독점적인 상태 정보를 공통 플릿 모델(Common Fleet Model)로 변환할 수 있다. 이러한 아키텍처 경계(Architectural Boundary)는 상호운용성(Interoperability)을 향상시키고 로봇과 플릿 애플리케이션이 서로 독립적으로 발전할 수 있도록 한다. VDA 5050과 같은 표준은 적절한 산업 환경에서 추가적인 인터페이스 모델을 제공할 수 있다.
+
+FMS는 또한 명령 권한(Command Authority)과 로봇 자율성(Robot Autonomy)을 명확하게 구분해야 한다. 플릿 소프트웨어는 목적지, 임무, 우선순위, 예약, 운영 정책(Operational Policy)을 결정할 수 있지만, 안전 필수 반응(Safety-Critical Reaction)이 원격 서버에 전적으로 의존해서는 안 된다. 로봇은 일시적인 통신 장애 상황에서도 안전하게 정지하고, 즉각적인 위험을 회피하며, 로컬 고장을 감지하고, 필수적인 동작을 유지할 수 있어야 한다. 이를 통해 전역 최적화(Global Optimization)가 자율적인 로컬 실행(Autonomous Local Execution)의 상위에서 동작하는 계층형 제어 모델(Hierarchical Control Model)이 형성된다.
+
+따라서 신뢰성(Reliability)을 확보하려면 부분 장애(Partial Failure)를 명시적으로 처리해야 한다. 로봇의 연결이 끊기거나, 서버가 재시작되거나, 무선 네트워크 성능이 저하되거나, 임무가 완료되지 않은 상태로 남거나, 인프라 장치가 사용 불가능해질 수 있다. 아키텍처는 복구 과정에서 작업이 중복 실행되거나 서로 충돌하는 예약이 생성되지 않도록 임무 식별자(Mission Identifier), 실행 상태(Execution State), 명령 이력(Command History), 자원 소유권(Resource Ownership)을 보존해야 한다. 하트비트(Heartbeat), 타임아웃(Timeout), 확인 응답(Acknowledgement), 재시도(Retry), 영구 큐(Persistent Queue), 멱등 연산(Idempotent Operation)은 이러한 장애 조건을 제어하는 대표적인 메커니즘이다.
+
+에너지 관리(Energy Management) 역시 플릿 전체 수준에서 수행해야 하는 핵심 기능이다. 충전 결정은 작업 할당만큼이나 전체 처리량(Throughput)에 직접적인 영향을 미치기 때문이다. 배터리 상태는 예상 임무 수요(Predicted Mission Demand), 충전기 가용성(Charger Availability), 이동 거리, 충전 시간, 운영 우선순위와 함께 해석되어야 한다. 모든 로봇을 동일한 배터리 임계값에서 충전하도록 보내면 충전기 혼잡이 발생하고 전체 운영 능력이 감소할 수 있다. 따라서 고도화된 FMS는 충전 인프라를 공유 자원으로 취급하고 임무 스케줄러(Mission Scheduler)와 연계하여 충전 시점을 조정한다.
+
+운영 관측성(Operational Observability)은 FMS를 단순한 작업 배차 시스템(Dispatcher)에서 관리 가능한 실제 운영 시스템(Production System)으로 전환한다. 운영자는 로봇 상태, 실행 중 및 대기 중인 임무, 지도 점유 상태(Map Occupancy), 교통 병목(Traffic Bottleneck), 배터리 분포, 경보, 사용 불가능한 자원, 시스템 성능을 확인할 수 있어야 한다. 과거 데이터는 활용률(Utilization), 처리량(Throughput), 임무 완료 시간(Mission Completion Time), 평균 고장 간격(Mean Time Between Failures, MTBF), 복구 빈도, 충전 동작 등을 분석하는 데 활용된다. 이러한 측정값은 이후 플릿 핵심성과지표(Fleet KPI), 시각화(Visualization), 사고 관리(Incident Management) 기능의 기반이 된다.
+
+아키텍처는 또한 엔터프라이즈 시스템(Enterprise System)과 시설 시스템(Facility System)을 연결하기 위한 통합 경계(Integration Boundary)를 제공해야 한다. 창고 관리 시스템(WMS)은 운송 주문을 생성할 수 있고, 제조 실행 시스템(MES)은 임무를 생산 공정과 연결할 수 있으며, 전사적 자원 관리(Enterprise Resource Planning, ERP) 애플리케이션은 상위 수준의 비즈니스 정보를 제공할 수 있다. 엘리베이터, 자동문, 컨베이어(Conveyor), 도킹 스테이션 및 기타 인프라 역시 관리 대상 자원으로 참여할 수 있다. 따라서 산업용 FMS는 자율 이동(Autonomous Mobility)을 주변 운영 환경과 연결하는 오케스트레이션 계층(Orchestration Layer)으로 발전한다.
+
+배치 규모가 몇 대의 로봇에서 수백 대 또는 수천 대로 증가하면 확장성(Scalability)은 FMS 아키텍처를 크게 변화시킨다. 소규모 플릿에서는 중앙집중형 처리(Centralized Processing)가 단순하고 효과적이지만, 대규모 시스템에서는 텔레메트리, 스케줄링 결정, 경로 충돌, 데이터베이스 트랜잭션, 운영 이벤트가 급격히 증가한다. 이에 따라 서비스를 기능별로 분리하고, 통신을 이벤트 구동 방식(Event-Driven)으로 구성하며, 상태 정보를 사이트(Site) 또는 구역(Zone) 단위로 분할하고, 계산량이 많은 최적화 기능을 안전 필수 플릿 서비스(Safety-Critical Fleet Service)와 독립적으로 운영할 수 있다. 이러한 구조는 10대 수준의 플릿에서 1,000대 규모의 플릿으로 확장하기 위한 중요한 기반이 된다.
+
+따라서 실제 운영 환경의 FMS는 단순한 그래픽 기반 로봇 모니터링 애플리케이션(Graphical Robot Monitoring Application)이 아니라 분산 오케스트레이션 시스템(Distributed Orchestration System)으로 이해하는 것이 적절하다. FMS의 핵심 역할은 일관된 플릿 상태를 유지하고, 운영 요구를 임무로 변환하며, 로봇을 할당하고, 공유 자원을 조정하며, 실행 과정을 감독하고, 장애로부터 복구하며, 주변 시스템에 신뢰할 수 있는 인터페이스를 제공하는 것이다. 이러한 기반 위에서 다중 로봇 조정(Multi-Robot Coordination), 분산 지능(Distributed Intelligence), 인공지능 최적화(AI Optimization), 디지털 트윈(Digital Twin), 사이버보안(Cybersecurity), 대규모 플릿 지능(Large-Scale Fleet Intelligence)으로 확장할 수 있다.
+
+## 01.02 Robot Registry Onboarding and Lifecycle Management
+
+![](images/image2.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+로봇 레지스트리(Robot Registry)는 플릿 관리 시스템(Fleet Management System, FMS)이 인식하고 관리하는 로봇 자산(Robotic Asset)의 권위 있는 인벤토리(Authoritative Inventory)이다. 로봇 레지스트리는 각 로봇에 영구적인 식별 정보(Persistent Identity)를 부여하고, 해당 식별 정보를 구성(Configuration), 기능(Capability), 소유권(Ownership), 통신 엔드포인트(Communication Endpoint), 보안 자격 증명(Security Credential), 소프트웨어 버전(Software Version), 운영 상태(Operational Status)와 연결한다. 로봇을 일시적인 네트워크 연결(Network Connection)로 취급하는 대신, 전체 운영 수명주기(Operational Lifecycle)에 걸쳐 이력을 추적할 수 있는 관리 대상 시스템 자산(Managed System Asset)으로 표현한다.
+
+플릿이 서로 다른 제조사, 이동 메커니즘(Mobility Mechanism), 적재 용량(Payload Capacity), 센서(Sensor), 매니퓰레이터(Manipulator), 배터리(Battery), 내비게이션 기능(Navigation Capability)을 가진 로봇으로 구성될 경우 레지스트리의 중요성은 더욱 커진다. 공통 로봇 레코드(Common Robot Record)를 사용하면 상위 수준의 플릿 서비스(Fleet Service)가 제조사별 구현에 직접 의존하지 않고 이러한 차이를 판단할 수 있다. 따라서 FMS는 로봇의 온라인 여부뿐만 아니라 특정 임무(Mission)를 수행할 기술적 자격과 운영 권한이 있는지도 판단할 수 있다.
+
+견고한 식별 모델(Identity Model)은 일반적으로 영구적인 로봇 식별 정보(Persistent Robot Identity)와 일시적인 네트워크 속성(Temporary Network Property)을 분리한다. IP 주소, 호스트 이름(Hostname), 통신 세션(Communication Session), 무선 인터페이스(Wireless Interface)는 운영 중 변경될 수 있지만 논리적인 로봇 식별 정보(Logical Robot Identity)는 안정적으로 유지되어야 한다. 전역 고유 식별자(Globally Unique Identifier), 플릿 전용 로봇 식별자(Fleet-Specific Robot Identifier), 일련번호(Serial Number), 모델(Model), 제조사(Manufacturer), 하드웨어 개정판(Hardware Revision)이 식별 체계의 기반을 구성할 수 있다. 운영자를 위한 사람이 읽을 수 있는 이름(Human-Readable Name)을 추가할 수 있지만, 소프트웨어와 데이터베이스에서 사용하는 변경 불가능한 식별자(Immutable Identifier)를 대체해서는 안 된다.
+
+기능 정보(Capability Information)는 등록된 각 로봇이 실제로 수행할 수 있는 작업을 정의한다. 이동 로봇(Mobile Robot)은 최대 적재량(Maximum Payload), 지원 내비게이션 모드(Supported Navigation Mode), 도킹 기능(Docking Capability), 충전기 호환성(Charger Compatibility), 허용 운행 구역(Permitted Operating Zone), 최대 속도(Maximum Speed), 사용 가능한 센서(Available Sensor) 등을 선언할 수 있다. 모바일 매니퓰레이터(Mobile Manipulator)는 추가적으로 로봇 팔 도달 범위(Arm Reach), 그리퍼 유형(Gripper Type), 조작 기술(Manipulation Skill), 도구 인터페이스(Tool Interface)를 제공할 수 있다. 기능 메타데이터(Capability Metadata)를 이용하면 임무 계획기(Mission Planner)와 작업 할당 서비스(Task Allocation Service)가 최적화 또는 작업 배차(Dispatch)를 시작하기 전에 부적합한 로봇을 제외할 수 있다.
+
+등록(Registration)은 온보딩(Onboarding)의 첫 번째 단계에 불과하다. 새롭게 발견된 로봇이 FMS와 통신할 수 있다는 이유만으로 즉시 실제 운영 자원(Production Resource)이 되어서는 안 된다. 온보딩 과정에서는 일반적으로 식별 정보 설정, 하드웨어 및 소프트웨어 호환성 검증, 통신 파라미터(Communication Parameter) 프로비저닝(Provisioning), 자격 증명 설치 또는 검증, 플릿 멤버십(Fleet Membership) 할당, 지도 및 운영 구역 연결, 필수 기능 확인 등을 수행한다. 이러한 사전 조건이 성공적으로 검증된 이후에만 로봇이 활성 서비스(Active Service) 단계로 전환된다.
+
+보안 프로비저닝(Security Provisioning)은 배포 이후 추가되는 기능이 아니라 온보딩 과정에 통합되어야 한다. 각 로봇은 플릿 서비스에 자신의 신원을 인증할 수 있는 신뢰할 수 있는 메커니즘을 갖추어야 하며, 동시에 로봇도 명령을 전달하는 시스템의 신뢰성을 검증해야 한다. 인증서(Certificate), 장치 자격 증명(Device Credential), 보안 키(Secure Key) 또는 이에 상응하는 식별 메커니즘을 이용하여 통신 세션을 등록된 로봇 식별 정보와 연결할 수 있다. 따라서 자격 증명의 발급(Issuance), 만료(Expiration), 교체(Rotation), 폐기(Revocation), 재발급(Replacement)은 레지스트리 레코드와 연결된 수명주기 작업(Lifecycle Operation)으로 관리되어야 한다.
+
+구성 관리(Configuration Management)는 일반적인 플릿 모델(Generic Fleet Model)을 각 플랫폼의 물리적 특성과 연결한다. 레지스트리는 로봇 크기(Robot Dimension), 풋프린트(Footprint), 운동학적 클래스(Kinematic Class), 속도 제한(Velocity Limit), 적재 제약(Payload Constraint), 안전 파라미터(Safety Parameter), 충전 특성(Charging Characteristic), 통신 프로파일(Communication Profile), 지원 프로토콜 버전(Supported Protocol Version) 등을 참조할 수 있다. 로봇은 수명주기 동안 하드웨어 교체, 센서 업그레이드, 펌웨어 업데이트(Firmware Update), 소프트웨어 릴리스(Software Release)를 통해 변경될 수 있으므로 구성 정보는 버전 관리(Versioning)되어야 한다. 동시에 과거 임무는 이전 구성 정보를 이용하여 해석해야 할 수도 있다.
+
+온보딩 과정에서는 운영 환경(Operational Environment)과의 호환성도 검증해야 한다. 특정 사이트(Site)에서 운용되는 로봇에는 올바른 지도(Map), 위치 추정 구성(Localization Configuration), 교통 규칙(Traffic Rule), 도킹 정의(Docking Definition), 충전기 할당(Charger Assignment), 제한 구역 권한(Restricted-Zone Permission), 시설 인터페이스(Facility Interface)가 필요할 수 있다. 기술적으로 정상적인 로봇이라도 이러한 관계가 잘못 설정되어 있다면 운영 측면에서는 호환되지 않을 수 있다. 따라서 사이트 커미셔닝(Site Commissioning)은 로봇 수준의 구성을 지도, 구역, 임무, 공유 자원에 대한 플릿 수준 표현과 연결한다.
+
+수명주기 상태 관리(Lifecycle State Management)는 로봇이 플릿 운영에 참여할 수 있는지를 명시적으로 제어한다. 유용한 상태 모델은 신규 등록(Newly Registered), 프로비저닝(Provisioning), 커미셔닝(Commissioning), 사용 가능(Available), 활성(Active), 유지보수(Maintenance), 성능 저하(Degraded), 격리(Quarantined), 일시 중지(Suspended), 폐기(Retired) 상태 등을 구분할 수 있다. 정확한 상태 모델은 배포 환경에 따라 달라질 수 있지만, 상태 전환(State Transition)은 단순히 네트워크 연결 여부만으로 추론되지 않고 명시적으로 제어되어야 한다. 예를 들어 유지보수 중인 온라인 로봇이 자동으로 임무 할당 대상이 되어서는 안 된다.
+
+따라서 운영 상태(Operational State)와 수명주기 상태(Lifecycle State)는 개념적으로 분리되어야 한다. 운영 상태는 로봇이 현재 무엇을 하고 있는지를 나타내며 유휴(Idle), 내비게이션 수행(Navigating), 충전(Charging), 임무 수행(Executing a Mission), 고장 보고(Reporting a Fault) 등이 이에 해당한다. 반면 수명주기 상태는 해당 자산이 플릿에서 사용하도록 승인되었는지와 어떤 조건에서 사용할 수 있는지를 나타낸다. 이러한 구분을 통해 일시적인 텔레메트리(Telemetry)가 관리 권한(Administrative Authorization)을 의도치 않게 변경하는 것을 방지하고, 유지보수 또는 보안 정책(Security Policy)이 정상적인 운영 상태보다 우선하도록 할 수 있다.
+
+상태 정보(Health Information)는 정상적인 운영 과정에서 지속적으로 레지스트리 데이터를 보완한다. 하트비트(Heartbeat)와 텔레메트리는 연결 상태(Connectivity), 배터리 상태(Battery Condition), 서브시스템 고장(Subsystem Fault), 온도(Temperature), 위치 추정 품질(Localization Quality), 소프트웨어 상태(Software Health) 및 기타 진단 지표(Diagnostic Indicator)를 갱신할 수 있다. 레지스트리가 모든 고주파 센서 샘플(High-Frequency Sensor Sample)을 직접 저장할 필요는 없지만, 플릿 서비스가 요구하는 현재 상태 요약(Current Health Summary)은 유지하거나 참조할 수 있어야 한다. 과거 텔레메트리는 영구적인 로봇 식별 정보와 연결된 상태에서 전문 시계열 시스템(Time-Series System)이나 관측성 시스템(Observability System)에 저장할 수 있다.
+
+유지보수 이벤트(Maintenance Event) 역시 수명주기 관리의 중요한 부분이다. 로봇에 검사(Inspection), 수리(Repair), 배터리 교체(Battery Replacement), 센서 교정(Sensor Calibration), 소프트웨어 작업(Software Intervention)이 필요한 경우, 로봇의 식별 정보나 이력을 삭제하지 않고 작업 할당이 가능한 플릿(Allocatable Fleet)에서 일시적으로 제외할 수 있다. 유지보수 기록에는 작업 사유, 담당 기술자 또는 프로세스, 영향을 받은 부품, 타임스탬프(Timestamp), 검증 결과(Validation Result)를 포함할 수 있다. 유지보수 완료 후에는 통제된 재커미셔닝(Recommissioning)을 수행하여 로봇의 안전성과 호환성을 검증한 다음 정상적인 임무 수행 자격을 복원한다.
+
+소프트웨어 및 펌웨어 업데이트(Software and Firmware Update) 역시 수명주기 기록에 반영되어야 한다. 플릿의 동작이 배포된 소프트웨어 버전에 따라 달라질 수 있기 때문이다. FMS는 어떤 로봇이 새로운 임무 기능, 프로토콜 개정(Protocol Revision), 내비게이션 동작, 보안 패치(Security Patch)를 지원하는지 파악해야 할 수 있다. 점진적 배포(Progressive Deployment)에서는 플릿 전체에 업데이트를 적용하기 전에 일부 로봇을 업데이트 또는 검증 상태(Update or Validation State)로 전환할 수 있다. 문제가 발생하면 버전 이력(Version History)을 이용하여 롤백(Rollback), 진단(Diagnosis), 운영 사고와 소프트웨어 변경 간의 상관관계 분석을 수행할 수 있다.
+
+격리(Quarantine)는 로봇과의 연결은 유지하지만 정상적인 운영 참여는 제한해야 하는 경우를 위한 통제 상태(Controlled State)를 제공한다. 반복적인 고장, 구성 불일치(Inconsistent Configuration), 만료된 자격 증명(Expired Credential), 사이버보안 우려(Cybersecurity Concern), 검증 실패(Failed Validation), 비정상 동작(Abnormal Behavior) 등으로 인해 로봇을 격리할 수 있다. 임무 할당을 차단하면서 통신을 유지하면 운영자와 자동 진단 서비스(Automated Diagnostic Service)가 전체 플릿에 불필요한 운영 또는 보안 위험을 발생시키지 않고 해당 로봇을 조사할 수 있다.
+
+플릿이 여러 건물, 사이트 또는 지역으로 확장될수록 레지스트리 일관성(Registry Consistency)은 더욱 중요해진다. 중복 식별자(Duplicate Identity), 오래된 레코드(Stale Record), 충돌하는 구성(Conflicting Configuration), 통제되지 않은 수동 변경(Uncontrolled Manual Change)은 잘못된 작업 할당이나 부정확한 대시보드를 초래할 수 있다. 따라서 레지스트리는 각 필드의 소유권(Field Ownership), 검증 규칙(Validation Rule), 업데이트 권한(Update Authority), 감사 이력(Audit History), 동기화 동작(Synchronization Behavior)을 정의해야 한다. 데이터베이스 제약(Database Constraint)과 트랜잭션 업데이트(Transactional Update)를 이용하면 분산 서비스(Distributed Service)가 레지스트리 정보를 사용하는 동안에도 일관된 단일 진실 공급원(Single Source of Truth)을 유지할 수 있다.
+
+외부 시스템 역시 로봇 레지스트리 정보에 대한 통제된 접근이 필요할 수 있다. 플릿 대시보드(Fleet Dashboard)는 로봇 이름과 수명주기 상태를 필요로 하고, 작업 할당기(Task Allocator)는 기능과 가용성을 필요로 하며, 유지보수 시스템(Maintenance System)은 자산 정보와 서비스 이력을 필요로 하고, 보안 서비스(Security Service)는 식별 정보와 자격 증명 상태를 필요로 한다. 각 애플리케이션이 독립적인 로봇 목록을 유지하도록 하는 대신 레지스트리 API(Registry API)와 이벤트(Event)를 통해 권위 있는 변경 정보를 배포할 수 있다. 이를 통해 구성 드리프트(Configuration Drift)를 줄이고 전체 운영 생태계(Operational Ecosystem)에서 일관된 로봇 식별 체계를 제공할 수 있다.
+
+로봇 폐기(Robot Retirement)는 수명주기의 마지막 단계이며 온보딩과 마찬가지로 체계적으로 관리되어야 한다. 폐기 과정에서는 로봇을 향후 임무 할당에서 제외하고, 활성 자격 증명을 폐기하며, 필요한 경우 할당된 자원과 라이선스(License)를 해제하고, 최종 구성 및 서비스 이력을 기록한다. 과거 임무, 사고(Incident), 유지보수, 성능 기록은 삭제하지 않고 폐기된 로봇의 식별 정보와 계속 연결되어야 한다. 이러한 기록은 이후 분석(Analytics), 감사(Audit), 신뢰성 연구(Reliability Study), 운영 추적성(Operational Traceability)에 필요할 수 있기 때문이다.
+
+따라서 로봇 레지스트리 및 수명주기 프레임워크(Robot Registry and Lifecycle Framework)는 플릿 멤버십(Fleet Membership)을 관리하기 위한 거버넌스 기반(Governance Foundation)으로 기능한다. 이 프레임워크는 어떤 로봇이 존재하는지, 어떤 기능을 보유하는지, 어디에서 운용할 수 있는지, 어떤 구성과 소프트웨어를 실행하는지, 정상 상태이고 운영 권한을 가지고 있는지, 그리고 시간에 따라 상태가 어떻게 변화했는지에 대한 핵심적인 질문에 답한다. 등록(Registration)과 커미셔닝(Commissioning)에서 시작하여 운영(Operation), 유지보수(Maintenance), 업데이트(Update), 격리(Quarantine), 폐기(Retirement)에 이르는 전체 경로를 통제함으로써 FMS는 자산 식별성(Asset Identity), 구성 무결성(Configuration Integrity), 보안(Security), 운영 책임성(Operational Accountability)을 유지하면서 대규모 플릿으로 확장될 수 있다.
+
+## 01.03 Fleet State Model Robot Status Mission Zone
+
+![](images/image3.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 상태 모델(Fleet State Model)은 플릿 관리 시스템(Fleet Management System, FMS)이 특정 시점의 로봇, 임무, 구역 및 자원의 상태를 이해하기 위해 사용하는 공유 운영 표현(Shared Operational Representation)이다. 스케줄링(Scheduling), 교통 제어(Traffic Control), 모니터링(Monitoring), 복구(Recovery) 서비스가 서로 다른 방식으로 플릿 상태를 해석하도록 두는 대신, 일관된 엔터티(Entity), 상태(State), 관계(Relationship), 상태 전환 규칙(Transition Rule)을 정의한다. 따라서 플릿 상태 모델은 플릿 전체 의사결정(Fleet-Wide Decision Making)을 위한 공통 운영 언어(Common Operational Language)가 된다.
+
+로봇 상태(Robot State)는 이 모델에서 가장 명확하게 관찰할 수 있는 구성 요소이다. 일반적으로 로봇 상태는 식별 정보(Identity)와 함께 위치 및 자세(Pose), 속도(Velocity), 운전 모드(Operating Mode), 배터리 수준(Battery Level), 위치 추정 품질(Localization Quality), 적재 상태(Payload Condition), 통신 상태(Communication Status), 현재 임무(Current Mission), 고장 정보(Fault Information)와 같은 동적 정보를 포함한다. 목적은 모든 센서 측정값을 재현하는 것이 아니라, 플릿 서비스가 로봇의 사용 가능, 작업 중, 성능 저하, 충전 중, 연결 해제 또는 작업 할당 부적합 여부를 판단하는 데 필요한 운영 정보를 유지하는 것이다.
+
+유용한 상태 모델은 수명주기 상태(Lifecycle State)와 운영 상태(Operational Status)를 구분한다. 수명주기 상태는 자산이 플릿 운영에 참여할 권한이 있는지를 결정하고, 운영 상태는 현재 로봇이 수행하고 있는 활동을 나타낸다. 따라서 활성 상태의 로봇은 유휴(Idle), 내비게이션 수행(Navigating), 도킹(Docking), 적재(Loading), 하역(Unloading), 충전(Charging), 대기(Waiting), 일시 정지(Paused), 고장 복구(Recovering from a Fault) 등의 상태가 될 수 있다. 이러한 구분은 일시적인 로봇 동작이 관리상 사용 자격을 의도하지 않게 변경하는 것을 방지하며 스케줄링, 유지보수, 보안 서비스가 보다 명확하게 상태를 판단하도록 한다.
+
+로봇 상태는 임의의 상태 문자열(Status String)이 아니라 통제된 상태 전환(Controlled Transition)을 통해 표현되어야 한다. 예를 들어 사용 가능한 로봇은 유휴 상태에서 할당(Assigned), 내비게이션 수행, 도킹, 작업 실행(Executing an Operation)을 거쳐 다시 유휴 상태로 전환될 수 있다. 고장이 발생하면 실행 과정이 일시 정지, 성능 저하(Degraded), 복구(Recovery), 고장(Fault) 상태로 전환될 수 있다. 명시적인 상태 전환 규칙을 사용하면 비정상적인 상태 순서를 탐지할 수 있으며, FMS가 작업 재할당, 경보(Alert), 재시도(Retry), 운영자 개입(Operator Intervention)을 실행해야 하는 시점을 결정할 수 있다.
+
+임무 상태(Mission State)는 플릿에 요청된 작업의 진행 상황을 나타낸다. 임무는 일반적으로 단순한 목적지 이상의 의미를 가지며 여러 동작(Action), 종속성(Dependency), 자원 예약(Resource Reservation), 완료 조건(Completion Condition)을 포함할 수 있다. 대표적인 상태에는 생성(Created), 대기열 등록(Queued), 할당(Assigned), 배차(Dispatched), 실행(Executing), 일시 정지(Paused), 완료(Completed), 실패(Failed), 취소(Cancelled), 복구(Recovering) 등이 포함될 수 있다. 임무 레코드는 식별자, 우선순위, 할당된 로봇, 현재 동작, 타임스탬프(Timestamp), 출발지(Origin), 목적지(Destination), 요구 기능(Required Capability), 관련 실행 컨텍스트(Execution Context)를 보존해야 한다.
+
+로봇 상태와 임무 상태는 강하게 연관되어 있지만 서로 독립적인 엔터티(Independent Entity)로 유지되어야 한다. 로봇은 활성 임무가 없는 상태에서도 존재할 수 있으며, 임무 역시 일시적으로 로봇이 할당되지 않은 상태로 존재할 수 있다. 재할당(Reassignment) 과정에서 기존 로봇은 고장 또는 유지보수 상태로 전환되는 반면, 임무는 대기 또는 복구 상태로 돌아갈 수 있다. 이러한 엔터티 분리를 통해 FMS는 로봇의 이력을 훼손하지 않고 작업을 재계획(Replanning)할 수 있으며, 동적 환경에서 더욱 유연한 작업 할당을 지원할 수 있다.
+
+임무 실행(Mission Execution)은 계층적으로 모델링할 수도 있다. 비즈니스 요청(Business Request)이 하나의 임무를 생성하고, 임무는 여러 작업(Task)을 포함하며, 각 작업은 이동(Navigate), 도킹(Dock), 픽업(Pickup), 대기(Wait), 검사(Inspect), 충전(Charge), 해제(Release)와 같은 로봇 수준의 동작(Robot-Level Action)을 포함할 수 있다. 각 계층은 자체 상태를 유지하면서 상위 계층의 상태 결정에 기여할 수 있다. 이러한 계층 구조를 통해 운영자와 소프트웨어 서비스는 전체 임무가 실패한 것인지, 아니면 복구 가능한 하나의 동작만 지연된 것인지를 구분할 수 있다.
+
+구역 상태(Zone State)는 플릿 상태 모델을 이동하는 로봇에서 로봇이 운용되는 공간 환경(Spatial Environment)까지 확장한다. 구역(Zone)은 복도(Corridor), 교차로(Intersection), 적재 스테이션(Loading Station), 엘리베이터 로비(Elevator Lobby), 제한 구역(Restricted Region), 충전 구역(Charging Area), 검사 위치(Inspection Location), 공유 작업 공간(Shared Workspace)과 같은 의미 있는 영역을 나타낸다. FMS는 각 구역에 점유 제한(Occupancy Limit), 허용 로봇 클래스(Permitted Robot Class), 속도 제한(Speed Restriction), 방향 규칙(Direction Rule), 우선순위(Priority), 예약(Reservation), 안전 제약(Safety Constraint), 임시 가용 조건(Temporary Availability Condition)을 연결할 수 있다.
+
+구역 점유(Zone Occupancy)는 위치 추정(Localization)과 플릿 교통 관리(Fleet Traffic Management)를 연결하는 중요한 역할을 한다. 로봇의 위치 및 자세를 논리적인 구역(Logical Zone)에 매핑함으로써 FMS는 어떤 로봇이 제한된 영역을 점유하고 있거나 접근하고 있는지를 판단할 수 있다. 제어 전략에 따라 구역은 비어 있음(Free), 점유됨(Occupied), 예약됨(Reserved), 차단됨(Blocked), 제한됨(Restricted), 사용 불가(Unavailable) 상태가 될 수 있다. 이러한 논리 상태를 사용하면 스케줄링 및 교통 관리 서비스가 원시 기하학 정보(Raw Geometric Information)를 지속적으로 처리하지 않고 운영 영역을 기준으로 판단할 수 있으므로 조정 과정이 단순해진다.
+
+예약(Reservation)은 구역 상태에 미래 시점의 정보를 추가한다. 로봇이 아직 교차로, 좁은 복도, 엘리베이터, 도킹 스테이션을 점유하지 않았더라도 가까운 미래에 독점적 또는 제한된 용량의 접근 권한이 필요할 수 있다. 따라서 FMS는 예약 소유자(Reservation Owner), 요청 시간 구간(Requested Interval), 우선순위, 만료(Expiration), 해제 조건(Release Condition)을 표현할 수 있다. 점유 상태와 예약을 함께 조정하면 충돌하는 경로를 방지하고, 특히 많은 로봇이 제한된 공유 인프라를 두고 경쟁하는 환경에서 교착 상태(Deadlock)의 발생 가능성을 줄일 수 있다.
+
+공유 자원(Shared Resource)은 순수한 공간 자원이 아닌 경우에도 구역과 유사한 방식으로 모델링할 수 있다. 충전기(Charger), 엘리베이터(Elevator), 자동문(Automatic Door), 컨베이어(Conveyor), 도킹 스테이션(Docking Station), 매니퓰레이터(Manipulator), 검사 장비(Inspection Equipment), 적재 인터페이스(Loading Interface)는 사용 가능(Available), 예약됨(Reserved), 점유됨(Occupied), 작업 중(Busy), 고장(Faulted), 오프라인(Offline)과 같은 상태를 가질 수 있다. 자원 상태를 임무 및 로봇과 연결하면 FMS는 로봇이 대기하는 이유를 이해할 수 있으며, 여러 임무가 하나의 독점 시설 자원(Exclusive Facility Resource)을 동시에 소유한다고 판단하는 문제를 방지할 수 있다.
+
+분산된 정보는 동시에 도착하지 않기 때문에 시간(Time)은 플릿 상태에서 핵심적인 요소이다. 따라서 중요한 모든 상태 업데이트(State Update)에는 타임스탬프, 시퀀스 정보(Sequence Information) 또는 이에 상응하는 순서 메타데이터(Ordering Metadata)가 포함되어야 한다. 특히 무선 통신이 간헐적으로 끊어지는 경우 FMS는 현재 정보와 지연되거나 오래된 정보(Stale Information)를 구분해야 한다. 몇 초 전에 내비게이션 수행 상태로 보고된 로봇이라도 하트비트(Heartbeat)가 사라졌거나 새로운 정보가 통신 장애를 나타낸다면 계속 같은 상태라고 가정해서는 안 된다.
+
+상태 일관성(State Consistency)을 확보하기 위해 모든 서비스가 하나의 중앙 데이터베이스에 동기적으로 접근해야 하는 것은 아니다. 실제 운영 아키텍처(Production Architecture)에서는 전용 서비스가 권위 있는 상태(Authoritative State)를 관리하고, 이벤트(Event), 메시지 브로커(Message Broker), 캐시(Cache), 복제된 읽기 모델(Replicated Read Model)을 통해 변경 사항을 배포할 수 있다. 스케줄링 서비스는 로봇 가용성을 사용하고, 교통 관리 서비스는 위치와 예약 정보를 사용하며, 대시보드는 요약된 상태 정보를 사용할 수 있다. 중요한 것은 각 소비자(Consumer)가 상태 소유권(State Ownership), 버전 관리(Versioning), 정보 최신성(Freshness), 충돌 해결 규칙(Conflict-Resolution Rule)을 이해하는 것이다.
+
+파생 상태(Derived State)는 직접 보고된 상태(Directly Reported State)만큼 중요할 수 있다. 로봇은 배터리 비율, 위치 및 자세, 진단 값을 보고하지만 FMS는 이를 기반으로 임무 수행 자격(Mission Eligibility), 예상 잔여 운용 시간(Estimated Remaining Operating Time), 구역 소속(Zone Membership), 혼잡 기여도(Congestion Contribution), 성능 저하 상태(Degraded Status)를 도출할 수 있다. 마찬가지로 예상 진행 상황과 실제 진행 상황을 비교하여 임무 지연(Mission Delay)을 추론할 수 있다. 관측 상태(Observed State)와 파생 상태를 분리하면 판단 과정을 보다 투명하게 만들고 계산된 플릿 수준의 결론이 물리적 로봇에서 직접 측정된 정보와 혼동되는 것을 방지할 수 있다.
+
+고장 처리(Failure Handling)를 위해서는 불확실성(Uncertainty)을 명시적으로 표현해야 한다. 로봇과의 통신이 끊어졌을 때 마지막으로 알려진 위치와 임무 정보를 단순히 삭제해서는 안 되며, 로봇이 안전하게 정지했다고 즉시 가정해서도 안 된다. 상태 모델은 마지막으로 신뢰할 수 있는 값(Last Trusted Value)을 보존하면서 정보를 오래됨(Stale), 불확실(Uncertain), 연결 해제(Disconnected), 확인 대기(Awaiting Confirmation) 상태로 표시할 수 있다. 이후 교통 관리 시스템은 로봇의 실제 상태가 확인될 때까지 마지막으로 점유한 영역을 보호할 수 있다.
+
+많은 플릿 기능은 정적인 값보다 상태 변화에 의존하므로 상태 전환은 의미 있는 이벤트(Meaningful Event)를 생성해야 한다. 로봇이 고장 상태로 진입하면 경보를 발생시킬 수 있고, 임무가 완료되면 예약을 해제할 수 있으며, 구역이 차단되면 경로 재계획(Route Replanning)을 시작할 수 있고, 충전기가 사용 가능한 상태가 되면 에너지 관리(Energy Management) 의사결정을 활성화할 수 있다. 이벤트 구동 전파(Event-Driven Propagation)를 사용하면 서로 독립적인 플릿 서비스가 내부 구현을 강하게 결합하지 않고도 동일한 권위 있는 상태 전환에 반응할 수 있다.
+
+플릿 상태 모델이 주로 현재 운영 상태를 표현하더라도 과거 상태(Historical State) 역시 중요하다. 중요한 상태 전환을 기록하면 사고 재구성(Incident Reconstruction), 성능 분석(Performance Analytics), 유지보수 분석(Maintenance Analysis), 핵심성과지표 계산(KPI Calculation)을 위한 시간 순서 기록(Timeline)을 생성할 수 있다. 운영자는 임무가 언제 할당되었는지, 어디에서 지연이 발생했는지, 어떤 구역에서 혼잡이 발생했는지, 통신이 언제 끊어졌는지, 복구가 어떻게 진행되었는지를 확인할 수 있다. 이러한 시간 기반 이력(Temporal History)은 운영 상태를 지속적인 플릿 개선을 위한 근거로 전환한다.
+
+규모가 커질수록 수백 또는 수천 대의 로봇이 지속적으로 상태를 변경하므로 상태 모델은 높은 효율성을 유지해야 한다. 고주파 텔레메트리(High-Frequency Telemetry)를 비즈니스 핵심 상태 전환(Business-Critical Transition)과 동일하게 처리해서는 안 된다. 위치 및 자세 업데이트는 스트리밍 채널(Streaming Channel)과 단기 캐시(Short-Lived Cache)를 사용할 수 있지만, 임무 완료, 소유권 변경, 안전 이벤트(Safety Event), 구성 상태 전환(Configuration Transition)은 더욱 강력한 영속성(Persistence)을 요구한다. 업데이트 빈도(Update Frequency), 중요도(Criticality), 보존 요구사항(Retention Requirement)에 따라 데이터를 분리하면 플릿 상태 아키텍처가 하나의 과부하된 데이터 저장소로 집중되는 것을 방지할 수 있다.
+
+궁극적으로 플릿 상태 모델은 로봇 상태(Robot Status), 임무 실행(Mission Execution), 공간 구역(Spatial Zone), 공유 자원(Shared Resource)을 하나의 일관된 운영 컨텍스트(Coherent Operational Context)로 연결한다. 이를 통해 FMS는 단순히 로봇이 어디에 있는지만 파악하는 것이 아니라, 무엇을 수행하고 있는지, 왜 해당 위치에 있는지, 어떤 임무를 수행하는지, 어떤 자원을 소유하고 있는지, 어떤 구역이 이동을 제약하는지, 그리고 해당 정보가 여전히 신뢰할 수 있는지를 판단할 수 있다. 이러한 통합 상태 기반(Unified State Foundation)은 신뢰할 수 있는 스케줄링, 교통 조정, 모니터링, 복구, 분석 및 확장 가능한 다중 로봇 운영(Scalable Multi-Robot Operation)을 가능하게 한다.
+
+## 01.04 Fleet Communication Topology Centralized Hybrid
+
+![](images/image4.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 통신 토폴로지(Fleet Communication Topology)는 로봇, 플릿 관리 시스템(Fleet Management System, FMS), 엣지 서버(Edge Server), 인프라 장치(Infrastructure Device), 엔터프라이즈 애플리케이션(Enterprise Application)이 운영 정보를 교환하는 구조를 정의한다. 토폴로지는 플릿 전체의 지연시간(Latency), 확장성(Scalability), 장애 허용성(Fault Tolerance), 일관성(Consistency), 명령 권한(Command Authority)에 영향을 미친다. 적절한 아키텍처는 지속적인 로봇 상태 교환뿐만 아니라 임무 명령, 교통 예약, 경보, 구성 변경, 인프라 이벤트를 예측 가능한 신뢰성으로 전달할 수 있어야 한다.
+
+통신 토폴로지(Communication Topology)는 통신 프로토콜(Communication Protocol) 자체와는 다르다. MQTT, ROS 2, REST, WebSocket, DDS 또는 독자 인터페이스(Proprietary Interface)는 정보를 교환하는 메커니즘을 정의하는 반면, 토폴로지는 어떤 구성 요소가 서로 통신하고 조정 의사결정(Coordination Decision)이 어디에서 이루어지는지를 정의한다. 따라서 동일한 프로토콜이라도 시스템 내부의 엔드포인트(Endpoint), 브로커(Broker), 컨트롤러(Controller), 의사결정 서비스(Decision Service)의 배치 방식에 따라 중앙집중형(Centralized), 분산형(Distributed), 하이브리드(Hybrid) 아키텍처를 지원할 수 있다.
+
+중앙집중형 토폴로지(Centralized Topology)는 플릿 컨트롤러(Fleet Controller) 또는 FMS를 통신 구조의 논리적 중심에 배치한다. 개별 로봇은 중앙 서비스와 통신을 설정하고 위치 및 자세(Pose), 배터리 수준(Battery Level), 운전 모드(Operating Mode), 임무 진행 상태(Mission Progress), 고장 상태(Fault Status) 등을 지속적으로 보고한다. FMS는 이러한 정보를 통합하여 플릿 전체 상태(Fleet-Wide State)를 구성하고, 임무 할당, 경로 제약(Route Constraint), 교통 통행 권한(Traffic Permission), 자원 예약(Resource Reservation), 운영 명령을 다시 로봇에 전달한다.
+
+중앙집중화(Centralization)는 하나의 논리적 권한 주체(Logical Authority)가 전체 플릿 상태에 접근할 수 있기 때문에 전역 조정(Global Coordination)을 단순화한다. 작업 할당(Task Allocation)은 사용 가능한 모든 로봇을 비교할 수 있고, 교통 관리(Traffic Management)는 서로 경쟁하는 경로 요청을 관찰할 수 있으며, 운영자는 통합된 제어 지점(Unified Control Point)을 통해 임무를 모니터링할 수 있다. 스케줄링, 임무 실행, 공유 자원 소유권이 여러 독립적인 컨트롤러에서 상태를 재구성하지 않고 동일한 권위 있는 플릿 상태(Authoritative Fleet State)를 사용할 수 있으므로 일관된 정책을 적용하기도 쉽다.
+
+중앙집중형 통신의 주요 한계는 중앙 통신 경로(Central Path)에 대한 의존성이다. 필수적인 의사결정이 지속적으로 FMS 접근을 요구한다면 네트워크 중단, 컨트롤러 과부하(Controller Overload), 소프트웨어 고장, 데이터베이스 사용 불가가 동시에 많은 로봇에 영향을 줄 수 있다. 따라서 중앙집중형 아키텍처가 모든 안전 대응까지 중앙집중화해야 한다는 의미는 아니다. 로봇은 통신이 불가능해지더라도 비상 정지(Emergency Stop), 장애물 회피(Obstacle Avoidance), 모션 제어(Motion Control), 안전 동작(Safe Behavior)을 로컬에서 유지할 수 있어야 한다.
+
+확장성(Scalability) 역시 중앙집중형 토폴로지의 특성을 변화시킨다. 10대의 로봇은 비교적 적은 통신 트래픽을 발생시키지만 수백 또는 수천 대의 로봇은 위치 업데이트, 하트비트(Heartbeat), 진단 정보(Diagnostics), 임무 이벤트, 예약 요청을 대량으로 생성할 수 있다. 모든 업데이트를 하나의 프로세스로 직접 전송하면 불필요한 병목(Bottleneck)이 발생한다. 실제 운영 시스템은 논리적인 중앙집중 구조를 유지하면서 브로커, API 게이트웨이(API Gateway), 데이터베이스, 상태 서비스(State Service), 처리 워커(Processing Worker)를 여러 컴퓨팅 노드에 분산할 수 있다.
+
+분산형 토폴로지(Distributed Topology)는 더 많은 통신 및 의사결정 권한을 개별 로봇이나 로컬 그룹(Local Group)으로 이동시킨다. 로봇은 충돌 조정(Collision Coordination), 협력 탐색(Cooperative Exploration), 공유 매핑(Shared Mapping), 포메이션 제어(Formation Control), 로컬 자원 협상(Local Resource Negotiation)을 위해 주변 로봇과 직접 정보를 교환할 수 있다. 이를 통해 단일 컨트롤러에 대한 의존성을 줄이고, 전체 플릿 정보보다 주변 상황에 주로 의존하는 의사결정에서는 응답성을 향상시킬 수 있다.
+
+그러나 분산형 통신은 자체적인 복잡성을 발생시킨다. 각 참여자는 시스템의 일부만 관찰하며 메시지가 서로 다른 순서로 도착할 수 있고, 로봇들이 공유 자원에 대해 일시적으로 서로 다른 상태를 인식할 수 있다. 따라서 합의(Consensus), 리더 선출(Leader Election), 분산 잠금(Distributed Locking), 충돌 해결(Conflict Resolution), 동기화(Synchronization) 메커니즘이 필요할 수 있다. 또한 통신 그래프(Communication Graph)가 분할되어 일부 로봇 그룹은 내부적으로 통신할 수 있지만 다른 그룹이나 중앙 인프라와 연결할 수 없는 상황에서 시스템이 어떻게 동작할지도 정의해야 한다.
+
+하이브리드 토폴로지(Hybrid Topology)는 중앙집중형 플릿 감독(Centralized Fleet Supervision)과 분산형 또는 로컬 의사결정(Distributed or Local Decision Making)을 결합한다. 서로 다른 기능이 서로 다른 공간적·시간적 규모에서 동작하기 때문에 이러한 방식은 산업용 플릿에서 특히 실용적이다. FMS는 전역 임무, 작업 할당, 정책, 분석(Analytics), 장기 최적화(Long-Term Optimization)를 관리하고, 로봇은 내비게이션, 장애물 회피, 안전 대응, 일부 로컬 조정을 독립적으로 수행할 수 있다. 엣지 컨트롤러(Edge Controller)는 개별 로봇과 전역 서비스(Global Service) 사이의 중간 계층을 제공할 수 있다.
+
+계층형 통신(Hierarchical Communication)은 대표적인 하이브리드 토폴로지 형태이다. 대규모 시설을 건물, 층, 생산 구역 또는 교통 구역으로 분할하고 각각을 엣지 또는 구역 컨트롤러(Zone Controller)가 관리할 수 있다. 로봇은 주변 컨트롤러와 고주파 운영 정보를 교환하고, 요약된 상태와 중요한 이벤트만 전역 FMS로 전달한다. 전역 명령은 반대 방향으로 전달되어 로컬 동작으로 구체화되므로 플릿 전체 감독 기능을 유지하면서 백본 네트워크(Backbone Network)의 트래픽을 줄일 수 있다.
+
+엣지 컨트롤러는 클라우드 또는 백본 네트워크의 일시적인 장애 상황에서도 제한적인 운영을 유지할 수 있다. 사이트 수준 컨트롤러(Site-Level Controller)는 이미 승인된 임무를 계속 실행하거나, 교통 예약을 유지하고, 충전기를 조정하며, 연결이 복구될 때까지 텔레메트리를 버퍼링(Buffering)할 수 있다. 이후 전역 FMS가 상태를 조정(Reconcile)하고 정상적인 감독을 재개할 수 있다. 이러한 접근에서는 오프라인 상태에서 어떤 의사결정을 계속 유효한 것으로 인정할지, 로컬 권한이 얼마나 오래 지속되는지, 재연결 이후 충돌하는 변경 사항을 어떻게 해결할지를 명확하게 정의해야 한다.
+
+통신 경로(Communication Path)는 모든 데이터를 하나의 채널로 강제하는 대신 정보의 특성에 따라 선택해야 한다. 로봇 위치와 속도는 빈번한 저지연 스트리밍(Low-Latency Streaming)이 필요할 수 있지만, 임무 생성과 구성 변경은 트랜잭션 방식(Transactional)이며 상대적으로 빈도가 낮다. 경보는 높은 신뢰성과 우선순위 전달이 필요하지만 원시 진단 데이터(Raw Diagnostics)는 일정한 지연을 허용할 수 있다. 지도 패키지(Map Package), 소프트웨어 이미지(Software Image), AI 모델은 높은 대역폭을 요구할 수 있지만 모션 관련 상태 메시지와 같은 수준의 지연 특성을 반드시 요구하지는 않는다.
+
+발행-구독 통신(Publish-Subscribe Communication)은 생산자(Producer)와 소비자(Consumer)를 느슨하게 결합할 수 있기 때문에 동적인 플릿 상태 전달에 특히 적합하다. 로봇은 자신의 데이터를 사용하는 모든 애플리케이션을 알 필요 없이 상태를 발행하고, 스케줄링, 모니터링, 분석, 디지털 트윈(Digital Twin) 서비스는 필요한 토픽(Topic)을 구독한다. 요청-응답 통신(Request-Response Communication)은 구성 조회, 임무 생성, 레지스트리 접근(Registry Access), 관리 작업과 같이 명시적인 결과가 필요한 동작에 유용하다. 하이브리드 FMS 플랫폼은 일반적으로 두 가지 상호작용 패턴을 함께 사용한다.
+
+서비스 품질(Quality of Service, QoS)은 모든 플릿 메시지의 중요도가 동일하지 않기 때문에 핵심적인 요소가 된다. 비상 및 안전 관련 이벤트는 일반적인 텔레메트리와 다르게 처리해야 하며, 임무 상태 전환(Mission State Transition)은 일반적으로 시각화 업데이트보다 중요하다. 따라서 신뢰성(Reliability), 전달 기한(Delivery Deadline), 영속성(Persistence), 순서 보장(Ordering), 우선순위(Priority), 재시도 정책(Retry Policy)은 메시지의 의미에 따라 결정되어야 한다. 중요하지 않은 고주파 데이터에 과도한 신뢰성을 적용하면 플릿 동작을 개선하기보다 대역폭을 소비하고 지연시간을 증가시킬 수 있다.
+
+네트워크 분할(Network Segmentation)은 통신 토폴로지를 운영 및 보안 경계(Operational and Security Boundary)와 일치시킬 수 있다. 로봇 네트워크, 안전 인프라(Safety Infrastructure), 기업 정보기술(Enterprise IT), 유지보수 시스템, 외부 클라우드 서비스는 서로 다른 네트워크 세그먼트에 배치되고 통제된 게이트웨이(Controlled Gateway)를 통해 연결될 수 있다. FMS 통신 계층은 이러한 경계를 넘는 승인된 정보 교환을 중재한다. 이러한 분리는 불필요한 트래픽 전파를 제한하고 침해된 장치(Compromised Device)나 잘못 구성된 엔드포인트가 미치는 영향을 줄인다.
+
+무선 연결(Wireless Connectivity)은 이동 로봇과 액세스 포인트(Access Point) 사이의 물리적 관계가 지속적으로 변화하기 때문에 특별한 고려가 필요하다. 와이파이 로밍(Wi-Fi Roaming), 사설 5G(Private 5G), 산업용 무선 네트워크(Industrial Wireless Network) 또는 이러한 기술의 조합에서는 가변적인 지연시간, 패킷 손실(Packet Loss), 일시적인 연결 중단, 커버리지 전환(Coverage Transition)이 발생할 수 있다. 따라서 플릿 통신은 항상 신뢰할 수 있는 네트워크를 가정하기보다 하트비트, 타임아웃(Timeout), 버퍼링, 재시도, 시퀀스 추적(Sequence Tracking), 재연결 절차(Reconnection Procedure)를 통해 간헐적인 연결 상태를 견딜 수 있어야 한다.
+
+토폴로지 설계에서는 명령 소유권(Command Ownership)도 고려해야 한다. 전역 FMS, 엣지 컨트롤러, 로컬 운영자 인터페이스(Local Operator Interface), 로봇 자율 기능(Robot Autonomy)이 모두 명령을 내릴 수 있다면 권한 충돌로 인해 안전하지 않거나 예측할 수 없는 동작이 발생할 수 있다. 시스템은 각 의사결정 영역을 어떤 컨트롤러가 소유하는지와 권한이 어떻게 이전되는지를 정의해야 한다. 명령 식별자(Command Identifier), 타임스탬프, 임대 권한(Lease), 우선순위, 확인 응답(Acknowledgement), 상태 머신 제약(State-Machine Constraint)을 활용하면 로봇이 현재 권한을 가진 소스로부터 전달된 유효한 명령만 실행하도록 할 수 있다.
+
+관측성(Observability)은 로봇 애플리케이션 상태뿐만 아니라 통신 구조 자체까지 포함해야 한다. 유용한 지표에는 연결 상태, 메시지 전송률(Message Rate), 지연시간, 패킷 손실, 큐 깊이(Queue Depth), 재시도 횟수, 브로커 상태(Broker Health), 폐기된 메시지(Dropped Message), 동기화 지연(Synchronization Delay), 엔드포인트 가용성(Endpoint Availability) 등이 포함된다. 이러한 측정값을 이용하면 운영자는 내비게이션 문제와 네트워크 문제를 구분할 수 있으며, 플릿이 더 많은 로봇, 구역, 시설로 확장될 때 용량 계획(Capacity Planning)을 위한 근거를 확보할 수 있다.
+
+모든 플릿 기능에 최적인 단일 토폴로지는 존재하지 않는다. 순수한 중앙집중형 구조는 전역 판단을 단순화하지만 중앙 인프라에 대한 의존성을 증가시키며, 완전한 분산형 통신은 로컬 자율성(Local Autonomy)을 향상시키지만 상태 일관성과 조정의 복잡성을 증가시킨다. 하이브리드 아키텍처는 지연시간, 적용 범위(Scope), 안전성(Safety), 가용성(Availability) 요구사항에 따라 책임을 의도적으로 분리함으로써 전역 최적화(Global Optimization), 로컬 자율성, 복원력 있는 엣지 운영(Resilient Edge Operation)이 함께 존재할 수 있도록 한다.
+
+따라서 최종적인 플릿 통신 아키텍처(Fleet Communication Architecture)는 단순한 로봇 연결의 집합이 아니라 계층화된 제어 및 정보 네트워크(Layered Control and Information Network)로 이해해야 한다. 중앙 FMS 서비스는 플릿 전체의 조정을 담당하고, 엣지 서비스(Edge Service)는 사이트 또는 구역 수준의 책임을 처리하며, 로봇은 로컬 자율 기능과 안전 기능을 유지한다. 이러한 계층을 적절한 메시징 패턴(Messaging Pattern), 서비스 품질(QoS), 보안 경계, 장애 처리(Failure Handling), 권한 규칙(Authority Rule)과 결합하면 플릿은 응답성(Responsiveness), 관측성, 운영 복원력(Operational Resilience)을 유지하면서 대규모 시스템으로 확장될 수 있다.
+
+## 01.05 VDA 5050 Fleet Controller Implementation [w/Code]
+
+![](images/image5.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+VDA 5050은 서로 다른 제조사의 무인운반차(Automated Guided Vehicle, AGV) 또는 자율이동로봇(Autonomous Mobile Robot, AMR)과 플릿 컨트롤러(Fleet Controller) 사이의 표준화된 통신 인터페이스(Standardized Communication Interface)를 제공한다. VDA 5050의 아키텍처 목적은 차량 내비게이션(Vehicle Navigation), 안전 제어(Safety Control), 저수준 모션 소프트웨어(Low-Level Motion Software)를 대체하는 것이 아니라, 이기종 시스템 간에 플릿 수준의 주문(Order), 차량 상태(Vehicle State), 동작(Action), 운영 정보를 일관되게 교환할 수 있는 공통 조정 경계(Common Coordination Boundary)를 정의하는 것이다.
+
+VDA 5050 기반 시스템에서 플릿 컨트롤러는 운송 주문 할당, 교통 조정(Traffic Coordination), 공유 자원 관리(Shared Resource Management), 차량 실행 상태 모니터링을 담당하는 상위 수준의 오케스트레이션 구성 요소(Orchestration Component)로 동작한다. 각 차량은 일반적으로 AGV 제어(AGV Control) 또는 차량 제어 시스템(Vehicle Control System)이라고 하는 자체적인 차량 측 제어 소프트웨어를 유지한다. 따라서 이 인터페이스는 전역 플릿 의사결정(Global Fleet Decision)과 로컬 차량 실행(Local Vehicle Execution)을 분리하면서 양측이 현재 주문에 대해 동기화된 상태를 유지하도록 한다.
+
+통신 모델(Communication Model)은 일반적으로 MQTT 발행-구독 메시징(Publish-Subscribe Messaging)을 사용하여 구현된다. 각 로봇 제조사마다 긴밀하게 결합된 지점 간 인터페이스(Point-to-Point Interface)를 유지하는 대신, 플릿 컨트롤러와 차량은 MQTT 브로커(MQTT Broker)를 통해 표준화된 JSON 메시지를 교환한다. 이를 통해 생산자(Producer)와 소비자(Consumer)를 분리하고 비동기 통신(Asynchronous Communication)을 지원하며, 제조사별 구현을 표준화 인터페이스 뒤에 유지하면서 여러 종류의 차량을 통합할 수 있다.
+
+실제 운영 환경의 구현(Production Implementation)은 차량 식별(Vehicle Identity)과 토픽 관리(Topic Management)에서 시작된다. 플릿 컨트롤러는 수신 메시지를 올바른 제조사와 차량 식별 정보에 연결하고 각각의 연결된 로봇에 대한 통신 컨텍스트(Communication Context)를 유지해야 한다. 따라서 토픽 구성(Topic Construction), 네임스페이스 관리(Namespace Management), MQTT 세션 동작(Session Behavior), 연결 모니터링(Connection Monitoring), 메시지 검증(Message Validation)은 임무 계획 로직(Mission-Planning Logic) 내부에 개별적으로 포함시키기보다 인프라 기능(Infrastructure Function)으로 처리해야 한다.
+
+차량 상태 메시지(Vehicle State Message)는 플릿 컨트롤러 운영의 핵심 요소이다. 이를 통해 컨트롤러는 차량의 현재 주문, 내비게이션 진행 상황, 노드(Node)와 엣지(Edge) 실행, 동작 상태(Action State), 운전 모드(Operating Mode), 배터리 상태(Battery Condition), 오류(Error), 안전 관련 상태(Safety-Related Status), 기타 표준화된 상태 요소를 관찰할 수 있다. 컨트롤러는 이러한 메시지를 내부 플릿 상태 모델(Fleet State Model)로 변환하여 스케줄링, 모니터링, 교통 관리, 복구 기능이 각 차량의 상태를 일관되게 판단할 수 있도록 한다.
+
+주문(Order)은 차량이 실행해야 하는 경로와 작업을 기술한다. 플릿 컨트롤러는 단순한 목적지 좌표만 전송하는 대신 노드와 엣지로 구성된 순서화된 그래프(Ordered Graph)를 생성한다. 노드는 중요한 위치 또는 작업 지점(Operational Point)을 나타내고, 엣지는 노드 사이에서 허용되는 이동을 나타낸다. 적절한 주문 위치에 동작(Action)을 연결하여 적재(Loading), 하역(Unloading), 도킹(Docking), 장비 연동(Equipment Interaction), 기타 차량이 지원하는 작업을 표현할 수 있다.
+
+핵심적인 구현 개념 중 하나는 주문의 해제 구간(Released Portion)과 미해제 구간(Unreleased Portion)을 구분하는 것이다. 플릿 컨트롤러는 실행 가능한 경로 구간(Route Segment)을 승인하는 동시에, 이후의 경로 요소는 교통 상황에 따라 변경할 수 있는 호라이즌(Horizon)으로 유지할 수 있다. 이를 통해 컨트롤러는 가까운 미래의 경로를 예약하거나 조정하면서 향후 경로 계획의 유연성을 유지할 수 있다. 차량은 주문의 의미 규칙(Order Semantics)에 따라 해제된 구간만 실행한다.
+
+주문 식별자(Order Identifier)와 업데이트 식별자(Update Identifier)는 플릿 컨트롤러와 차량 사이의 동기화를 유지하는 데 필수적이다. 컨트롤러는 새로운 주문을 전송하는지, 기존 주문을 확장하거나 변경하는지, 또는 변화된 운영 조건에 대응하는지를 구분할 수 있어야 한다. 수신된 상태는 컨트롤러가 예상하는 주문 버전(Order Version)과 연계되어야 한다. 이를 잘못 처리하면 오래된 명령(Stale Command), 중복 실행(Duplicated Execution), 업데이트 거부(Rejected Update), 활성 임무에 대한 서로 다른 해석이 발생할 수 있다.
+
+따라서 플릿 컨트롤러는 각 차량과 주문 관계(Vehicle-Order Relationship)에 대해 명시적인 상태 머신(State Machine)을 유지해야 한다. 내부 상태는 미할당(Unassigned), 주문 준비(Order Prepared), 전송(Transmitted), 상태 관찰을 통한 확인(Acknowledged through State Observation), 실행(Executing), 대기(Waiting), 완료(Completed), 실패(Failed), 취소(Cancelled), 복구(Recovering) 등의 조건을 표현할 수 있다. 내부 구현은 표준화된 메시지 표현과 다를 수 있지만, 비동기 메시지로 인해 임무 소유권(Mission Ownership)이 모호해지지 않도록 상태 전환은 결정적이고 추적 가능해야 한다.
+
+동작(Action)도 이와 유사한 수명주기 추적(Lifecycle Tracking)이 필요하다. 플릿 컨트롤러는 주문의 일부 또는 지원되는 제어 메커니즘을 통해 동작을 요청할 수 있으며, 차량은 실행 과정에서 이에 대응하는 동작 상태를 보고한다. 컨트롤러는 각각의 동작 식별자(Action Identifier)를 임무 컨텍스트(Mission Context)와 연결하고, 완료, 실패 또는 기타 보고된 상태에 따라 임무를 계속 진행할 수 있는지를 판단해야 한다. 모든 차량이 동일한 동작을 지원한다고 가정하지 말고 제조사별 기능(Vendor-Specific Capability)을 신중하게 매핑해야 한다.
+
+즉시 동작(Instant Action)은 일반적인 주문의 노드-엣지 진행 과정(Node-Edge Progression)에 단순히 포함되지 않는 명령을 처리하기 위한 메커니즘을 제공한다. 지원되는 VDA 5050 버전과 차량 기능에 따라 현재 실행 컨텍스트에 영향을 주어야 하는 운영 개입(Operational Intervention) 또는 제어 기능에 사용할 수 있다. 즉시 동작은 활성 주문(Active Order)에 영향을 줄 수 있으므로 컨트롤러는 해당 동작의 의미, 식별자, 실행 상태, 임무 진행에 미치는 잠재적인 영향을 이해해야 한다.
+
+교통 조정(Traffic Coordination)은 기본적으로 플릿 컨트롤러의 책임으로 유지된다. 컨트롤러는 교차로, 좁은 복도, 스테이션, 엘리베이터, 도킹 구역 및 기타 공유 자원을 고려하여 경로를 계산할 수 있다. 이후 해당 이동이 허용되는 경우에만 경로 구간을 해제한다. 따라서 VDA 5050은 교통 관리 의사결정(Traffic-Management Decision)을 차량에 전달하는 실행 인터페이스(Execution Interface)가 되며, 예약(Reservation), 교착 상태 방지(Deadlock Prevention), 우선순위 결정(Prioritization), 최적화(Optimization) 알고리즘은 FMS 내부에 유지할 수 있다.
+
+플릿 컨트롤러가 사용하는 지도(Map) 역시 차량 통합 계층(Vehicle Integration Layer)이 이해하는 토폴로지와 의미적으로 일치해야 한다. 노드, 엣지, 위치(Position), 방향(Orientation), 지도 관련 식별자(Map-Related Identifier)는 일관되게 해석되어야 한다. 플릿 컨트롤러는 의미론적 구역(Semantic Zone), 비용(Cost), 교통 제한(Traffic Restriction), 인프라 관계(Infrastructure Relationship)를 포함하는 보다 풍부한 내부 지도를 유지하고, 선택된 경로를 각 차량과 통신하는 데 필요한 노드-엣지 표현(Node-Edge Representation)으로 변환할 수 있다.
+
+표준화된 메시지가 실제 운영 의사결정에 영향을 미치기 전에 강건한 메시지 검증(Robust Message Validation)이 필요하다. 컨트롤러는 필수 필드(Required Field), 식별자, 시퀀스 관계(Sequence Relationship), 지원 프로토콜 버전(Supported Protocol Version), 예상 데이터 유형(Expected Data Type), 관련 의미적 제약(Semantic Constraint)을 검증해야 한다. 주문이 알려지지 않은 노드를 참조하거나, 지원되지 않는 동작을 요구하거나, 상태 정보가 컨트롤러의 차량 컨텍스트와 충돌한다면 문법적으로 올바른 JSON만으로는 충분하지 않다. 유효하지 않은 입력은 정의되지 않은 동작이 아니라 통제된 진단(Controlled Diagnostics)을 발생시켜야 한다.
+
+통신 장애(Communication Failure)는 예외적인 상황이 아니라 예상 가능한 운영 조건으로 처리해야 한다. MQTT 연결은 무선 로밍(Wireless Roaming), 브로커 장애(Broker Failure), 네트워크 분할(Network Segmentation), 차량 재시작(Vehicle Restart), 인프라 유지보수로 인해 중단될 수 있다. 플릿 컨트롤러는 연결 상태와 정보 최신성(Freshness)을 유지하고 오래된 상태(Stale State)를 탐지하며, 마지막으로 보고된 차량 상태가 무기한 유효하다고 가정하지 않아야 한다. 재연결 절차(Reconnection Procedure)는 현재 차량 상태와 컨트롤러의 임무 표현 사이에 신뢰할 수 있는 관계를 다시 구축해야 한다.
+
+재연결 이후 명령을 무조건 다시 전송하면 물리적인 작업이 중복 실행될 수 있기 때문에 복구(Recovery)는 특히 중요하다. 컨트롤러는 먼저 차량이 어떤 주문과 업데이트를 실행하고 있다고 인식하는지, 어떤 노드 또는 동작이 이미 완료되었는지, 남아 있는 임무가 여전히 유효한지를 확인해야 한다. 이러한 상태 조정(Reconciliation)이 완료된 이후에만 실행을 계속하거나 업데이트하거나 취소해야 한다. 영속적인 주문 이력(Persistent Order History)과 멱등성을 갖는 컨트롤러 로직(Idempotent Controller Logic)은 복구 동작의 신뢰성을 크게 향상시킨다.
+
+차량이 보고한 오류(Error)는 단순한 원시 프로토콜 메시지(Raw Protocol Message)로 표시하는 데 그치지 않고 플릿 수준의 사고 관리(Fleet-Level Incident Handling)와 통합해야 한다. 컨트롤러는 오류를 심각도(Severity), 영향을 받는 기능, 임무 영향(Mission Impact), 복구 가능성(Recovery Possibility)에 따라 분류할 수 있다. 내비게이션 관련 오류는 경로 재계획(Route Replanning)을 유발할 수 있고, 적재 처리 기능의 사용 불가는 작업 재할당을 요구할 수 있으며, 심각한 차량 고장은 현재 위치를 교통 제약으로 유지하면서 해당 로봇을 작업 할당 대상에서 제외할 수 있다.
+
+확장 가능한 구현(Scalable Implementation)을 위해서는 VDA 5050 어댑터(Adapter)를 상위 수준의 플릿 지능(Fleet Intelligence)과 분리해야 한다. 임무 스케줄링, 작업 할당, 교통 최적화(Traffic Optimization), 에너지 관리(Energy Management), 엔터프라이즈 통합(Enterprise Integration)은 내부의 제조사 중립적인 도메인 모델(Vendor-Neutral Domain Model)을 기반으로 동작할 수 있다. 전용 어댑터는 이 모델을 VDA 5050 주문으로 변환하고 수신된 차량 메시지를 다시 정규화된 플릿 이벤트(Normalized Fleet Event)로 변환한다. 이를 통해 프로토콜에 종속적인 세부 사항이 전체 FMS 아키텍처로 확산되는 것을 방지할 수 있다.
+
+동일한 분리 구조는 혼합 플릿(Mixed Fleet)도 지원한다. 일부 로봇은 VDA 5050을 통해 통신하고, 다른 로봇은 독자 API(Proprietary API), ROS 2 인터페이스 또는 특수 컨트롤러를 사용할 수 있다. 상위 플릿 서비스는 통신 방식에 종속된 메시지 스키마(Transport-Specific Message Schema)를 직접 사용하는 대신 로봇 상태, 임무, 경로, 기능, 동작, 고장과 같은 정규화된 개념(Normalized Concept)을 기반으로 동작해야 한다. 이 경우 VDA 5050은 보다 광범위한 다중 제조사 플릿 아키텍처(Multi-Vendor Fleet Architecture)에서 하나의 표준화된 사우스바운드 인터페이스(Standardized Southbound Interface)가 된다.
+
+테스트(Testing)는 정상적인 주문 실행만을 대상으로 해서는 안 된다. 컨트롤러 구현은 중복 메시지(Duplicated Message), 지연된 상태(Delayed State), 지원되지 않는 동작, 유효하지 않은 주문 업데이트, 연결이 끊긴 차량, 브로커 재시작, 부분적인 경로 실행(Partial Route Execution), 비상 상황(Emergency Condition), 컨트롤러 재시작 이후의 복구 상황을 대상으로 검증해야 한다. 시뮬레이션(Simulation)과 프로토콜 에뮬레이터(Protocol Emulator)는 실제 로봇과 통합하기 전에 다양한 차량 동작과 장애 조합을 평가할 수 있기 때문에 특히 유용하다.
+
+따라서 잘 설계된 VDA 5050 플릿 컨트롤러는 표준화된 통신과 명시적인 내부 상태 관리(Internal State Management), 경로 조정(Route Coordination), 검증(Validation), 영속성(Persistence), 장애 복구(Failure Recovery)를 결합한다. 표준은 상호운용성 경계(Interoperability Boundary)를 정의하지만 작업 할당, 교통 관리, 자원 조정(Resource Coordination), 운영 정책(Operational Policy)을 결정하는 지능은 FMS가 담당한다. 이러한 역할의 차이를 명확하게 유지하면 이기종 로봇이 로컬 자율성(Local Autonomy)이나 플릿 수준 최적화(Fleet-Level Optimization)를 희생하지 않고 하나의 공통 플릿에 참여할 수 있다.
+
+## 01.06 Fleet KPI Definition Throughput Utilization MTBF
+
+![](images/image6.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 핵심성과지표(Fleet Key Performance Indicator, KPI)는 로봇 플릿이 요구되는 운영 용량(Operational Capacity), 신뢰성(Reliability), 효율성(Efficiency)을 제공하고 있는지를 평가하기 위한 정량적 측정 기준을 제공한다. 개별 로봇의 지표만으로는 충분하지 않은데, 플릿 성능은 작업 할당(Task Allocation), 교통 상태(Traffic Condition), 충전(Charging), 고장(Failure), 대기(Waiting), 공유 자원(Shared Resource) 간의 상호작용을 통해 결정되기 때문이다. 따라서 유용한 KPI 프레임워크(KPI Framework)는 로봇 수준의 측정값을 임무 수준 및 시스템 수준의 운영 결과와 연결해야 한다.
+
+KPI는 측정하기 전에 먼저 명확하게 정의되어야 한다. 정의에는 측정 대상 엔터티(Measured Entity), 관찰 기간(Observation Interval), 포함 및 제외 규칙(Inclusion and Exclusion Rule), 집계 방법(Aggregation Method), 단위(Unit), 비정상 조건(Abnormal Condition)의 처리 방법이 포함되어야 한다. 이러한 규칙이 없으면 겉으로 동일한 지표를 표시하는 두 개의 대시보드가 서로 다른 값을 나타낼 수 있다. 따라서 실제 플릿 분석(Production Fleet Analytics)에서는 운영, 엔지니어링, 유지보수, 경영 부문이 성능을 일관되게 해석할 수 있도록 통제된 KPI 사전(KPI Dictionary)이 필요하다.
+
+처리량(Throughput)은 정의된 시간 동안 플릿이 완료한 유용한 작업의 양을 측정한다. 적용 분야에 따라 시간당 완료 임무 수, 교대당 운송 팔레트 수, 일일 배송 컨테이너 수, 시간당 검사 위치 수 또는 다른 의미 있는 생산 단위로 표현할 수 있다. 기본적인 계산식은 처리량(Throughput) = 완료된 작업 단위(Completed Work Units) / 관찰 시간(Observation Time)이다. 서로 다른 기간이나 사이트의 값을 비교할 때에는 작업 단위(Work Unit)를 일관되게 유지해야 한다.
+
+처리량은 단순히 로봇 속도로만 해석해서는 안 된다. 로봇의 속도가 빨라지더라도 혼잡(Congestion), 적재 지연(Loading Delay), 차단된 교차로(Blocked Intersection), 사용 불가능한 엘리베이터, 부족한 충전기 등이 전체 프로세스를 지배한다면 플릿 처리량이 증가하지 않을 수 있다. 플릿 처리량은 전체 운영 시스템의 종단 간 특성(End-to-End Property)이다. 따라서 처리량 분석은 임무 주기 시간(Mission Cycle Time), 대기열 길이(Queue Length), 교통 지연(Traffic Delay), 자원 대기(Resource Waiting), 충전 동작, 고장 이벤트와 함께 분석해야 한다.
+
+임무 주기 시간(Mission Cycle Time)은 정의된 임무 시작 시점부터 완료 시점까지의 경과 시간을 측정한다. 이를 할당 지연(Assignment Delay), 이동 시간(Travel Time), 대기 시간(Waiting Time), 도킹 시간(Docking Time), 적재 또는 서비스 시간, 복구 지연(Recovery Delay)으로 세분화할 수 있다. 평균 주기 시간(Average Cycle Time)은 유용하지만, 일부 심각하게 지연된 임무가 평균값에 가려질 수 있으므로 백분위수(Percentile)가 운영상의 문제를 더 명확하게 보여주는 경우가 많다. 유효한 비교를 위해서는 시작 및 완료 시점에 대한 일관된 정의가 필수적이다.
+
+활용률(Utilization)은 사용 가능한 로봇 용량 가운데 실제 생산 활동에 사용되는 비율을 나타낸다. 기본적인 계산식은 활용률(Utilization) = 생산 활동 시간(Productive Time) / 사용 가능 시간(Available Time) × 100%이다. 생산 활동 시간에는 임무 이동과 작업 실행을 포함할 수 있으며, 충전, 대기, 유지보수, 고장 복구, 유휴 시간은 별도의 상태로 분류할 수 있다. 정확한 분류 기준은 운영 목표에 따라 달라지므로 이를 가정하지 말고 명확하게 문서화해야 한다.
+
+높은 활용률이 항상 바람직한 것은 아니다. 지속적으로 100%에 가까운 활용률로 운영되는 플릿은 수요 급증(Demand Peak), 고장, 일시적인 인프라 제한을 흡수할 수 있는 예비 용량(Reserve Capacity)이 부족할 수 있다. 거의 모든 로봇이 작업 중이라면 대기열이 빠르게 증가할 수 있다. 반대로 낮은 활용률은 과도한 플릿 규모, 부족한 작업 생성, 스케줄링 비효율(Scheduling Inefficiency), 불필요한 대기를 의미할 수 있다. 따라서 활용률은 처리량 및 서비스 수요(Service Demand)와 함께 해석해야 한다.
+
+가용도(Availability)는 필요한 시점에 로봇이 요구되는 작업을 수행할 수 있는지를 측정한다. 이는 사용 가능한 로봇이 현재 수행할 임무가 없어 유휴 상태일 수도 있다는 점에서 활용률과 다르다. 가용도는 가동 시간(Uptime)과 중단 시간(Downtime), 또는 신뢰성 및 수리 관련 지표를 기반으로 추정할 수 있다. 사용 가능, 사용 불가, 계획 유지보수(Scheduled Maintenance), 비계획 고장(Unscheduled Failure), 관리상 비활성화(Administratively Disabled) 상태를 명확히 구분하면 이 KPI의 운영적 의미가 향상된다.
+
+평균 고장 간격(Mean Time Between Failures, MTBF)은 수리 가능한 고장(Repairable Failure) 사이의 평균 운전 시간을 나타낸다. 일반적인 플릿 계산식은 평균 고장 간격(MTBF) = 총 운전 시간(Total Operating Time) / 관련 고장 횟수(Number of Relevant Failures)이다. 여기에서 고장(Failure)의 정의가 매우 중요하다. 경미한 경고를 임무 실행을 중단시키는 사건과 동일하게 계산해서는 안 된다. 고장 분류 체계(Failure Taxonomy)는 하드웨어, 소프트웨어, 통신, 위치 추정(Localization), 내비게이션, 안전, 인프라 관련 이벤트를 구분해야 한다.
+
+MTBF는 개별 로봇, 로봇 모델, 서브시스템(Subsystem) 또는 전체 플릿을 대상으로 계산할 수 있다. 플릿 전체 집계는 전반적인 신뢰성 수준을 보여주며, 구성 요소 수준의 분석은 배터리, 구동 모듈(Drive Module), 센서, 컴퓨터, 통신 장치와 같은 반복적인 취약점을 식별하는 데 도움이 된다. 운영 조건과 고장 정의가 충분히 유사한 경우에만 비교가 의미를 가진다. 가혹한 환경에서 지속적으로 운용되는 로봇을 상대적으로 가벼운 조건에서 간헐적으로 운용되는 로봇과 단순하게 비교해서는 안 된다.
+
+평균 수리 시간(Mean Time To Repair, MTTR)은 고장에서 복구하는 데 필요한 시간을 측정함으로써 MTBF를 보완한다. 고장이 자주 발생하는 시스템이라도 복구가 매우 빠르면 허용 가능한 가용도를 유지할 수 있는 반면, 드물게 발생하는 고장이라도 수리에 수 시간이 필요하면 심각한 운영 중단을 초래할 수 있다. 정의된 유지보수 경계(Maintenance Boundary)에 따라 MTTR에는 진단(Diagnosis), 기술자 대응(Technician Response), 예비 부품 교체, 소프트웨어 복원(Software Restoration), 검증(Validation), 재커미셔닝(Recommissioning)이 포함될 수 있다.
+
+단순화된 신뢰성 모델(Simplified Reliability Model)의 가정이 적절한 경우 가용도는 개념적으로 가용도(Availability) = MTBF / (MTBF + MTTR)의 관계로 표현할 수 있다. 이 관계는 신뢰성 향상과 수리 시간 단축이 모두 중요하다는 점을 보여준다. MTBF를 증가시키면 고장 발생 빈도가 감소하고, MTTR을 감소시키면 각 고장이 운영에 미치는 영향을 줄일 수 있다. 따라서 플릿 유지보수 전략(Fleet Maintenance Strategy)은 단순히 고장 횟수에만 집중하지 않고 두 가지 측면을 모두 다루어야 한다.
+
+임무 성공률(Mission Success Rate)은 정의된 승인 조건(Acceptance Condition)에 따라 완료된 임무의 비율을 측정한다. 기본 계산식은 임무 성공률(Mission Success Rate) = 성공한 임무(Successful Missions) / 시도한 임무(Attempted Missions) × 100%이다. 그러나 재시도(Retry), 취소(Cancellation), 운영자 개입(Operator Intervention), 부분 완료(Partial Completion), 재할당된 임무(Reassigned Mission)에 대해서는 명시적인 처리 기준이 필요하다. 수동 복구 이후 완료된 임무는 운영적으로 성공한 것으로 볼 수 있지만 별도의 개입 또는 복구 지표에도 반영되어야 한다.
+
+로봇 유휴 시간(Robot Idle Time)과 대기 시간(Waiting Time)은 낮은 활용률의 원인을 설명하는 중요한 지표이다. 유휴 시간은 수행할 작업 자체가 없음을 의미할 수 있지만, 대기는 작업이 존재하더라도 교통, 스테이션, 엘리베이터, 충전기, 다른 로봇 또는 외부 프로세스로 인해 실행이 차단된 상태를 의미할 수 있다. 이러한 상태를 구분하면 FMS가 모든 비생산 시간을 동일하게 처리하는 것을 방지하고, 개선을 위해 스케줄링 변경, 인프라 확장 또는 프로세스 재설계 중 무엇이 필요한지를 판단할 수 있다.
+
+교통 관련 핵심성과지표(Traffic-Related KPI)는 다중 로봇 조정(Multi-Robot Coordination)이 플릿 용량을 제한하고 있는지를 보여준다. 유용한 지표에는 평균 교통 대기 시간(Average Traffic Waiting Time), 교차로 지연(Intersection Delay), 경로 차단 빈도(Blocked-Route Frequency), 예약 충돌(Reservation Conflict), 경로 재설정 빈도(Rerouting Frequency), 교착 상태 복구 이벤트(Deadlock Recovery Event)가 포함된다. 로봇 수를 늘리면 초기에는 처리량이 증가할 수 있지만, 이후 혼잡으로 인해 추가 로봇의 한계 효과(Marginal Benefit)가 감소할 수 있다. 이러한 지표를 이용하면 로봇 추가가 더 이상 생산 능력 증가로 직접 연결되지 않는 지점을 식별할 수 있다.
+
+에너지 핵심성과지표(Energy KPI)는 플릿 생산성과 배터리 및 충전 동작을 연결한다. 관련 측정값에는 임무당 에너지 소비량(Energy Consumed per Mission), 킬로와트시당 생산 작업(Productive Work per Kilowatt-Hour), 충전 시간 비율(Charging Time Ratio), 충전기 활용률(Charger Utilization), 저전압 배터리로 인한 작업 중단(Low-Battery Interruption), 충전소까지의 이동 거리 등이 포함된다. 충분한 수의 로봇을 보유하고 있더라도 충전 조정이 잘못되면 실질적인 플릿 용량이 감소할 수 있다. 따라서 에너지 분석은 충전기 배치, 충전 정책, 배터리 용량 결정에 활용할 수 있다.
+
+거리 및 이동 효율성(Distance and Motion Efficiency)은 플릿 성능을 평가하는 또 다른 관점을 제공한다. 공차 이동 거리(Empty Travel Distance), 적재 이동 거리(Loaded Travel Distance), 총 이동 거리(Total Distance), 불필요한 경로 재설정(Unnecessary Rerouting), 완료 임무당 이동 거리 등을 분석하면 비효율적인 작업 할당이나 시설 레이아웃 문제를 발견할 수 있다. 단순히 이동 거리를 최소화하는 것이 항상 최적은 아니다. 약간 더 긴 경로가 혼잡을 회피하여 전체 임무 시간을 단축할 수도 있기 때문이다. 따라서 거리 지표는 주기 시간 및 교통 상태와 함께 평가해야 한다.
+
+KPI 집계(KPI Aggregation)는 운영 컨텍스트(Context)를 보존해야 한다. 하나의 플릿 전체 평균값은 교대조(Shift), 구역, 로봇 모델, 임무 클래스(Mission Class), 운영 조건 사이의 차이를 감출 수 있다. 따라서 지표는 시간 구간, 사이트, 로봇, 임무 유형, 구역, 소프트웨어 버전, 관련 장비 구성에 따라 필터링할 수 있어야 한다. 이러한 차원 구조(Dimensional Structure)를 이용하면 엔지니어는 성능 변화가 시스템 전체의 문제인지 특정 플릿 하위 집합과 연관된 문제인지를 판단할 수 있다.
+
+과거 기준선(Historical Baseline)은 KPI 값을 실제 행동으로 연결할 수 있도록 한다. 처리량 값은 목표(Target), 이전 기간과의 비교, 설계 용량(Design Capacity), 서비스 수준 요구사항(Service-Level Requirement)이 없다면 의미가 제한적이다. 추세 분석(Trend Analysis)을 통해 점진적인 배터리 성능 저하, 교통 혼잡 증가, MTBF 저하, 복구 시간 증가가 심각한 운영 문제로 발전하기 전에 발견할 수 있다. 통계적 임계값(Statistical Threshold)과 이상 탐지(Anomaly Detection)는 엔지니어링 판단을 대체하지 않으면서 선제적인 조사를 지원할 수 있다.
+
+KPI의 품질은 궁극적으로 데이터 품질(Data Quality)에 의존한다. 누락된 타임스탬프, 중복된 임무 이벤트, 일관되지 않은 고장 코드, 동기화되지 않은 시계, 오래된 로봇 상태(Stale Robot State), 잘못 분류된 중단 시간은 설득력 있어 보이지만 잘못된 대시보드를 만들 수 있다. 따라서 플릿 분석에서는 이벤트 완전성(Event Completeness), 타임스탬프 일관성(Timestamp Consistency), 상태 전환 로직(State-Transition Logic), 데이터 출처 추적성(Data Provenance)을 검증해야 한다. KPI 계산 결과는 일시적인 대시보드 값으로만 존재해서는 안 되며 보존된 운영 기록을 기반으로 재현할 수 있어야 한다.
+
+성숙한 플릿 KPI 프레임워크(Mature Fleet KPI Framework)는 처리량, 활용률, 가용도, MTBF, MTTR, 임무 성공률, 주기 시간, 교통 지연, 에너지 효율성 및 관련 진단 지표를 하나의 일관된 성능 모델(Coherent Performance Model)로 결합한다. 하나의 지표만으로 플릿의 품질을 표현할 수는 없다. 핵심 목적은 생산성(Productivity), 용량(Capacity), 신뢰성, 유지보수, 교통, 에너지가 어떻게 상호작용하는지를 이해하는 것이다. 이를 통해 FMS와 운영팀은 병목(Bottleneck)을 식별하고, 개선 효과를 평가하며, 적절한 플릿 규모를 계획하고, 로봇 운영을 지속적으로 최적화할 수 있다.
+
+## 01.07 Fleet Visualization Dashboard Design [w/Code]
+
+![](images/image7.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 시각화 대시보드 설계(Fleet Visualization Dashboard Design)는 분산된 로봇, 임무, 교통, 자원, 인프라 데이터를 사람이 빠르게 이해하고 대응할 수 있는 운영 화면으로 변환한다. 대시보드는 단순히 텔레메트리(Telemetry)를 그래픽으로 표현하는 계층이 아니다. 이는 플릿 관리 시스템(Fleet Management System, FMS)과 운영자, 감독자, 유지보수 담당자, 관리자 사이의 운영 인터페이스(Operational Interface)이며, 각 사용자는 모니터링, 진단, 개입, 성능 개선을 위해 서로 다른 수준의 정보를 필요로 한다.
+
+효과적인 대시보드는 정보 계층 구조(Information Hierarchy)에서 시작한다. 가장 중요한 플릿 상태는 수초 이내에 이해할 수 있어야 하며, 세부적인 진단 정보는 기본 화면을 복잡하게 만들지 않으면서 필요할 때 접근할 수 있어야 한다. 플릿 규모, 활성 임무(Active Mission), 사용 가능한 로봇, 고장, 차단 구역(Blocked Zone), 충전 상태, 중요 경보(Critical Alarm)는 일반적으로 최상위 수준에 배치된다. 상세 로봇 텔레메트리, 임무 이력, 서브시스템 진단, 구성 정보는 조사가 필요한 경우 상세 조회 화면(Drill-Down View)을 통해 제공할 수 있다.
+
+플릿 개요(Fleet Overview)는 얼마나 많은 로봇이 사용 가능한지, 현재 어떤 작업이 실행되고 있는지, 어디에서 문제가 발생하고 있는지, 전체 운영이 정상적으로 진행되고 있는지를 동시에 파악할 수 있어야 한다. 요약 카드(Summary Card)는 활성, 유휴(Idle), 충전 중, 성능 저하(Degraded), 연결 해제(Disconnected), 고장 상태의 로봇과 함께 대기, 실행, 지연, 완료, 실패 상태의 임무를 표시할 수 있다. 가능하다면 이러한 값은 대시보드가 독립적으로 계산하기보다 권위 있는 플릿 상태(Authoritative Fleet State)에서 가져와야 한다.
+
+이동 로봇의 운영은 본질적으로 공간적 특성을 가지므로 공간 시각화(Spatial Visualization)는 특히 중요하다. 지도 화면(Map View)은 로봇 위치, 방향(Orientation), 경로, 목적지, 구역, 스테이션, 충전기, 엘리베이터, 제한 구역(Restricted Area), 기타 인프라를 표시할 수 있다. 로봇 아이콘은 운영자가 모든 차량을 개별적으로 확인하지 않고도 상태를 파악할 수 있도록 해야 한다. 선택된 로봇에는 임무, 배터리 수준, 속도, 위치 추정 품질(Localization Quality), 목적지, 최근 경보와 같은 추가 정보를 표시할 수 있다.
+
+지도 시각화는 세부 정보와 가독성(Readability) 사이의 균형을 유지해야 한다. 플릿 규모가 커질수록 모든 계획 경로, 예약(Reservation), 센서 영역(Sensor Footprint), 과거 이동 궤적(Historical Trajectory)을 동시에 표시하면 시각적 혼잡이 발생할 수 있다. 레이어 제어(Layer Control)를 통해 운영자가 필요할 때만 교통 경로, 예약, 제한 구역, 히트맵(Heat Map), 인프라, 진단 오버레이(Diagnostic Overlay)를 활성화하도록 할 수 있다. 줌 수준에 따른 렌더링(Zoom-Dependent Rendering)과 클러스터링(Clustering)은 수백 대의 로봇이 대규모 시설에 배치된 경우 복잡성을 더욱 줄일 수 있다.
+
+임무 시각화(Mission Visualization)는 작업을 운영 워크플로(Operational Workflow)로 표현하여 공간 화면을 보완한다. 운영자는 대기, 할당, 실행, 일시 정지, 완료, 실패, 복구 중인 임무를 식별하고 각각의 임무를 어떤 로봇이 담당하는지 파악할 수 있어야 한다. 임무 상세 정보에는 출발지(Origin), 목적지(Destination), 우선순위, 현재 작업 또는 동작(Action), 경과 시간(Elapsed Time), 예상 완료 시간(Expected Completion), 종속성(Dependency), 관련 자원이 포함될 수 있다. 지연된 임무는 정상적으로 실행되는 임무와 시각적으로 명확하게 구분되어야 한다.
+
+교통 시각화(Traffic Visualization)는 로봇 상태만으로는 이해하기 어려운 상황을 설명하는 데 도움이 된다. 정상 상태의 로봇이 대기하고 있더라도 실제로는 예약된 교차로, 좁은 복도, 엘리베이터, 도킹 스테이션 또는 다른 차량으로 인해 이동이 차단되었을 수 있다. 교통 오버레이(Traffic Overlay)는 구역 점유(Zone Occupancy), 경로 예약(Route Reservation), 차단 경로(Blocked Path), 혼잡(Congestion), 교착 상태(Deadlock) 관련 조건을 표시할 수 있다. 과거 히트맵(Historical Heat Map)을 활용하면 개별 사고만으로는 파악하기 어려운 반복적인 병목(Bottleneck)을 발견할 수 있다.
+
+공유 자원(Shared Resource)은 플릿 성능을 결정하는 경우가 많기 때문에 자체적인 가시 상태를 가져야 한다. 충전기, 엘리베이터, 자동문, 컨베이어(Conveyor), 도킹 스테이션, 적재 장비, 검사 자원은 사용 가능(Available), 예약됨(Reserved), 점유됨(Occupied), 작업 중(Busy), 고장(Faulted), 오프라인(Offline) 상태로 표현할 수 있다. 자원 상태를 이를 사용하는 로봇 및 임무와 연결하면 운영자는 로봇 자체의 문제와 인프라 문제를 구분하고 임무가 대기하는 원인을 파악할 수 있다.
+
+경보 설계(Alarm Design)는 모든 서브시스템에서 발생하는 모든 경고를 단순히 표시하기보다 운영상 중요도(Operational Significance)를 우선해야 한다. 이벤트는 심각도(Severity), 긴급성(Urgency), 영향 범위(Affected Scope), 확인 상태(Acknowledgement State), 요구되는 대응에 따라 분류할 수 있다. 중요 안전 조건이나 플릿 전체의 운영을 중단시킬 수 있는 상황은 정보성 알림(Informational Notification)과 시각적으로 명확하게 구분되어야 한다. 과도한 저가치 경보가 즉각적인 대응이 필요한 소수의 중요한 이벤트를 가릴 수 있으므로 경보 폭주(Alarm Flooding)를 방지해야 한다.
+
+경보는 단순한 오류 코드(Error Code)가 아니라 관련 컨텍스트(Context)를 제공해야 한다. 유용한 정보에는 영향을 받는 로봇 또는 자원, 현재 임무, 위치, 타임스탬프(Timestamp), 심각도, 예상되는 운영 영향, 권장되거나 허용되는 대응 방법이 포함된다. 동일한 근본 원인에서 발생한 관련 경보는 하나의 사고(Incident)로 연계할 수 있다. 또한 운영자는 원본 이벤트 이력을 삭제하지 않으면서 사고를 확인(Acknowledge), 담당자에게 할당(Assign), 주석 처리(Annotate), 검토할 수 있어야 한다.
+
+로봇 상세 화면(Robot Detail View)은 현재 상태와 관련된 최근 이력을 결합하여 진단 및 유지보수를 지원한다. 정보에는 배터리 상태, 운전 모드, 연결 상태(Connectivity), 위치 추정 품질, 현재 임무, 적재 상태(Payload Condition), 소프트웨어 버전, 고장 코드, 온도, 센서 상태(Sensor Health), 유지보수 상태가 포함될 수 있다. 추세가 중요한 값에는 시계열 그래프(Time-Series Plot)가 유용하지만 기본 화면에는 선택된 신호만 표시해야 한다. 원시 고주파 텔레메트리(Raw High-Frequency Telemetry)는 기본 운영 화면보다 더 깊은 수준의 진단 도구에서 제공하는 것이 적절하다.
+
+KPI 시각화(KPI Visualization)는 실시간 제어를 넘어 관리 및 최적화 관점을 제공한다. 처리량(Throughput), 활용률(Utilization), 가용도(Availability), 임무 성공률(Mission Success Rate), 주기 시간(Cycle Time), 평균 고장 간격(Mean Time Between Failures, MTBF), 평균 수리 시간(Mean Time To Repair, MTTR), 교통 대기 시간, 충전기 활용률, 에너지 효율성을 목표값(Target) 및 과거 기준선(Historical Baseline)과 함께 표시할 수 있다. 추세 차트(Trend Chart)는 시간에 따른 성능 저하 또는 개선을 명확하게 보여주어야 하며, 필터를 이용하여 사이트, 교대조(Shift), 로봇 모델, 임무 클래스(Mission Class), 구역, 소프트웨어 버전별로 성능을 구분할 수 있다.
+
+대시보드 설계에서는 실시간 운영 화면(Real-Time Operational View)과 분석 화면(Analytical View)을 구분해야 한다. 현재 운행 중인 로봇을 관리하는 운영자는 즉각적인 상태, 경보, 지도 상황, 개입 제어(Intervention Control)가 필요하지만 엔지니어는 과거 비교 및 근본 원인 정보(Root-Cause Information)가 필요할 수 있다. 관리자는 주로 용량(Capacity), 신뢰성, 처리량, 서비스 수준 지표(Service-Level Indicator)를 필요로 할 수 있다. 이러한 모든 요구사항을 하나의 화면에 배치하려고 하면 어떤 사용자 그룹에도 효과적이지 않은 인터페이스가 만들어질 가능성이 높다.
+
+따라서 역할 기반 화면(Role-Based View)을 통해 동일한 플릿 데이터를 서로 다른 추상화 수준(Level of Abstraction)으로 제공할 수 있다. 운영자 대시보드(Operator Dashboard)는 실시간 임무와 예외 상황(Exception)을 강조하고, 유지보수 대시보드(Maintenance Dashboard)는 상태와 고장 이력을 강조하며, 엔지니어링 대시보드(Engineering Dashboard)는 통신 지연시간, 위치 추정 품질, 소프트웨어 버전, 서브시스템 진단을 제공할 수 있다. 관리 화면(Management View)은 불필요한 저수준 제어 기능을 노출하지 않으면서 추세와 KPI를 요약할 수 있다.
+
+상호작용 설계(Interaction Design)는 시각화만큼 중요하다. 운영자는 최소한의 단계로 로봇이나 임무를 검색하고, 상태별로 필터링하며, 지도 객체를 선택하고, 경보에서 영향을 받은 자산으로 이동하며, 관련 임무와 자원 정보를 확인할 수 있어야 한다. 화면 사이를 이동할 때에도 컨텍스트가 유지되어야 한다. 운영자가 실패한 임무를 선택했다면 인터페이스는 해당 임무, 할당된 로봇, 위치, 관련 경보, 관련 자원 사이의 관계를 지속적으로 유지해야 한다.
+
+수동 개입 제어(Manual Intervention Control)는 대시보드 동작이 물리적인 기계에 직접 영향을 줄 수 있으므로 특히 신중하게 설계해야 한다. 일시 정지(Pause), 재개(Resume), 취소(Cancel), 재할당(Reassign), 자원 해제(Release a Resource), 유지보수 상태로 전환(Send a Robot to Maintenance)과 같은 명령은 대상과 예상 효과를 명확하게 표시해야 한다. 확인 절차(Confirmation)는 모든 명령에 무조건 적용하기보다 운영 위험에 비례하여 적용해야 한다. 역할 기반 권한 부여(Role-Based Authorization)와 감사 로그(Audit Logging)를 통해 중요한 명령을 누가 언제 실행했는지 기록해야 한다.
+
+데이터 최신성(Data Freshness)은 반드시 가시적으로 표현되어야 한다. 시각적으로 신뢰할 만한 대시보드라도 오래된 정보를 현재 상태처럼 표시하면 위험할 수 있기 때문이다. 연결 상태 표시(Connection Indicator), 마지막 업데이트 타임스탬프(Last-Update Timestamp), 오래된 상태 표시(Stale-State Marker)를 사용하여 최근 검증된 데이터와 통신이 끊어지기 전에 수신된 정보를 구분할 수 있다. 연결이 끊긴 로봇을 정상적으로 운행 중인 것처럼 계속 표시해서는 안 된다. 동일한 최신성 규칙은 임무, 인프라 장치, 예약, 외부 시스템 통합에도 적용되어야 한다.
+
+확장성(Scalability)은 백엔드 아키텍처뿐만 아니라 시각화에도 영향을 미친다. 10대의 로봇에서는 효과적인 지도도 500대의 로봇이 표시되면 읽기 어려워질 수 있다. 대규모 플릿에는 집계(Aggregation), 필터링(Filtering), 클러스터링, 계층형 사이트 탐색(Hierarchical Site Navigation), 예외 중심 표현(Exception-Oriented Presentation)이 필요하다. 운영자가 모든 로봇을 지속적으로 감시하도록 요구해서는 안 된다. 정상적인 자율 운영은 시각적으로 조용하게 유지하면서 대시보드는 이상 상태, 병목, 고장, 의사결정이 필요한 상황으로 운영자의 주의를 유도해야 한다.
+
+대시보드 자체의 성능과 신뢰성 역시 운영상 중요한 요소이다. 과도한 텔레메트리 업데이트는 사람의 상황 인식(Human Awareness)을 향상시키지 않으면서 브라우저, 네트워크, 시각화 서비스를 과부하시킬 수 있다. 백엔드 서비스는 고주파 데이터를 집계하고 적절한 주기로 화면 표시용 상태(Display-Oriented State)를 발행할 수 있다. 중요한 이벤트는 이벤트 구동 방식(Event-Driven)으로 즉시 전달되어야 하지만, 위치와 같이 빠르게 변화하는 값은 시각화 요구사항에 따라 샘플링(Sampling)하거나 보간(Interpolation)할 수 있다.
+
+과거 재생(Historical Replay)은 사고 분석(Incident Analysis)을 크게 향상시킬 수 있다. 로봇 위치, 임무 상태, 교통 예약, 경보, 자원 상태를 공통 타임라인(Common Timeline)을 기준으로 재구성하면 엔지니어는 특정 이벤트 전후에 어떤 일이 발생했는지 조사할 수 있다. 재생 기능은 쉽게 재현하기 어려운 간헐적 혼잡(Intermittent Congestion), 교착 상태, 통신 장애, 비정상적인 임무 동작을 분석하는 데 특히 유용하다. 신뢰할 수 있는 재구성을 위해서는 정확한 타임스탬프와 보존된 상태 전환(State Transition) 기록이 필수적이다.
+
+따라서 성숙한 플릿 대시보드(Mature Fleet Dashboard)는 실시간 상황 인식(Real-Time Situational Awareness), 공간 시각화, 임무 감독(Mission Supervision), 교통 및 자원 컨텍스트, 경보 관리, 진단, KPI 분석, 통제된 개입(Controlled Intervention)을 하나의 일관된 인간-기계 인터페이스(Human-Machine Interface) 안에 결합한다. 목적은 가능한 한 많은 데이터를 표시하는 것이 아니라 적절한 정보를 적절한 수준과 시점에 제공하는 것이다. 이를 통해 인간 운영자가 점점 더 자율화되는 로봇 플릿을 효과적으로 감독하면서도 로봇 운영의 병목이 되지 않도록 할 수 있다.
+
+## 01.08 Fleet Alert and Incident Management Workflow
+
+![](images/image8.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+경보 및 사고 관리(Alert and Incident Management)는 플릿 관리 시스템(Fleet Management System, FMS)이 비정상 상태(Abnormal Condition)를 탐지하고, 그 중요성을 평가하며, 적절한 대응을 조정하고, 이후 분석을 위한 근거를 보존하는 운영 프로세스(Operational Process)이다. 로봇 플릿에서 비정상 이벤트는 로봇, 임무, 교통 서비스, 인프라, 통신 네트워크, 안전 시스템 또는 엔터프라이즈 인터페이스(Enterprise Interface)에서 발생할 수 있다. 체계적인 워크플로(Structured Workflow)는 개별적인 경고가 관리되지 않는 운영 장애로 확대되는 것을 방지한다.
+
+경보(Alert)는 주의가 필요할 수 있는 관찰 가능한 상태(Observable Condition)를 의미하는 반면, 사고(Incident)는 조정된 조사 또는 대응이 필요한 운영 상황(Operational Situation)을 의미한다. 따라서 하나의 사고에는 서로 연관된 여러 경보가 포함될 수 있다. 예를 들어 위치 추정(Localization) 손실은 내비게이션 오류, 임무 지연, 교통 차단 경보를 발생시킬 수 있지만, 이들 모두 하나의 근본적인 로봇 문제에서 발생할 수 있다. 경보와 사고를 분리하면 중복을 줄이고 운영 상황에 대한 이해를 향상시킬 수 있다.
+
+경보 생성(Alert Generation)은 플릿 상태, 텔레메트리(Telemetry), 임무 실행, 인프라 상태, 통신 상태(Communication Health)를 지속적으로 관찰하는 것에서 시작된다. 경보 소스에는 로봇 고장 메시지, 배터리 임계값(Battery Threshold), 위치 추정 성능 저하, 하트비트 누락(Missed Heartbeat), 차단된 경로, 동작 실패(Failed Action), 충전기 고장, 엘리베이터 고장, 안전 이벤트, 임무 타임아웃(Mission Timeout) 등이 포함될 수 있다. 모니터링 계층(Monitoring Layer)은 이러한 관측 정보를 표준화된 이벤트(Standardized Event)로 변환하여 상위 수준의 사고 관리 로직이 일관된 방식으로 평가할 수 있도록 한다.
+
+탐지 규칙(Detection Rule)은 장치가 직접 보고하는 정보와 FMS가 파생한 조건(Derived Condition)을 함께 사용해야 한다. 로봇은 모터 고장(Motor Fault)을 직접 보고할 수 있지만, 플릿 시스템은 반복적인 임무 재시도, 과도한 대기, 급격한 배터리 용량 감소, 통신 지연시간 증가 등을 기반으로 비정상 동작을 추론할 수도 있다. 파생 탐지(Derived Detection)는 많은 플릿 수준의 문제가 하나의 장치 고장보다 개별적으로는 정상인 여러 구성 요소 사이의 상호작용에서 발생할 수 있기 때문에 특히 중요하다.
+
+생성되는 모든 경보는 자동화 시스템과 사람이 해석하기에 충분한 컨텍스트(Context)를 포함해야 한다. 중요한 속성에는 경보 식별자(Alert Identifier), 타임스탬프(Timestamp), 발생원(Source), 영향을 받는 로봇 또는 자원, 심각도(Severity), 분류(Category), 현재 임무, 위치, 관련 상태, 진단 정보(Diagnostic Information)가 포함된다. 가능한 경우 경보가 활성(Active), 확인됨(Acknowledged), 해제됨(Cleared), 반복 발생(Recurring), 억제됨(Suppressed) 상태인지도 나타내야 한다. 구조화된 메타데이터(Structured Metadata)는 필터링, 상관관계 분석(Correlation), 라우팅(Routing), 과거 분석을 가능하게 한다.
+
+심각도 분류(Severity Classification)는 경보의 운영상 중요도를 결정한다. 정보성 이벤트(Informational Event)는 기록은 필요하지만 즉각적인 대응이 필요하지 않을 수 있으며, 경고(Warning)는 운영 상태가 악화되기 전에 조사해야 하는 조건을 나타낸다. 중요 경보(Critical Alert)는 임무 중단 고장, 주요 인프라 문제 또는 즉각적인 개입이 필요한 상태를 의미할 수 있다. 심각도는 단순히 구성 요소가 보고한 내부 오류 수준을 그대로 사용하는 것이 아니라 운영 영향(Operational Impact)과 긴급성(Urgency)을 반영해야 한다.
+
+우선순위(Priority)와 심각도는 항상 동일한 개념으로 취급해서는 안 된다. 심각도는 기술적 상태가 얼마나 심각한지를 나타내는 반면, 우선순위는 현재 운영 컨텍스트에서 문제를 얼마나 긴급하게 해결해야 하는지를 나타낼 수 있다. 중간 수준의 로봇 고장이라도 로봇이 핵심 복도(Critical Corridor)를 차단한다면 높은 우선순위를 가질 수 있으며, 유지보수 구역에 격리된 로봇의 심각한 고장은 즉각적인 플릿 영향이 제한적일 수 있다. 따라서 FMS는 기술적 심각도와 운영 컨텍스트를 결합하여 우선순위를 결정할 수 있다.
+
+경보 상관관계 분석(Alert Correlation)은 하나의 근본 이벤트에서 연쇄적으로 생성되는 메시지로 인해 운영자가 과부하되는 것을 방지한다. 상관관계 로직(Correlation Logic)은 로봇 식별 정보, 위치, 임무, 시간적 근접성(Time Proximity), 서브시스템(Subsystem), 인과관계(Causal Relationship)를 기준으로 경보를 그룹화할 수 있다. 통신 손실이 임무 타임아웃과 오래된 위치 추정 경고(Stale Localization Warning)를 발생시킨다면, 사고 관리자는 이러한 증상을 서로 독립적인 고장으로 표시하기보다 최초의 연결 문제와 연관시킬 수 있다.
+
+중복 제거(Deduplication)는 또 다른 중요한 필터링 메커니즘이다. 지속적인 고장은 높은 빈도로 반복 보고될 수 있지만, 운영자에게는 일반적으로 지속 시간(Duration)과 반복 횟수(Recurrence Count)가 갱신되는 하나의 활성 경보만 필요하다. 동일한 메시지가 반복된다고 해서 수백 개의 독립적인 사고를 생성해서는 안 된다. 중복 제거 키(Deduplication Key), 시간 구간(Time Window), 상태 전환(State Transition), 해제 조건(Clear Condition)을 사용하면 중요한 근거를 보존하면서 불필요한 운영 노이즈(Operational Noise)를 줄일 수 있다.
+
+억제(Suppression) 및 유지보수 규칙(Maintenance Rule)은 예상된 비정상 상태와 실제 사고를 구분하는 데 도움이 된다. 계획된 유지보수 중인 로봇은 의도적으로 오프라인 상태일 수 있으며, 인프라도 서비스 작업 중 일시적으로 비활성화될 수 있다. 억제는 명시적이고 시간 제한적(Time-Bounded)이어야 하며, 승인된 사용자 또는 워크플로에 의해 수행되고 감사 가능(Auditable)해야 한다. 반복적인 경보를 영구적으로 억제하면 해결되지 않은 엔지니어링 문제가 숨겨질 수 있으므로 억제된 상태도 이후 신뢰성 분석(Reliability Analysis)을 위해 확인할 수 있어야 한다.
+
+경보가 사고로 판단되면 시스템은 전체 운영 문제를 표현하는 사고 레코드(Incident Record)를 생성한다. 이 레코드에는 영향을 받는 자산, 연관된 경보, 심각도, 우선순위, 현재 담당자(Current Owner), 상태, 타임스탬프, 임무 영향(Mission Impact), 교통 영향(Traffic Impact), 수행된 조치, 복구 진행 상태가 포함될 수 있다. 사고는 운영자, 자동 복구 서비스(Automated Recovery Service), 유지보수 담당자, 감독자가 대응을 조정하기 위한 중심 객체(Central Object)가 된다.
+
+사고 상태(Incident State)는 통제된 수명주기(Controlled Lifecycle)를 따라야 한다. 일반적인 흐름은 탐지됨(Detected) 또는 열림(Open)에서 시작하여 확인됨(Acknowledged), 할당됨(Assigned), 조사 중(Investigating), 완화 중(Mitigating), 복구 중(Recovering), 해결됨(Resolved), 종료됨(Closed)으로 진행된다. 조직의 요구사항에 따라 모니터링(Monitoring) 또는 에스컬레이션(Escalation)과 같은 추가 상태를 사용할 수도 있다. 명시적인 상태 전환은 책임을 명확하게 하고 탐지 시간, 확인 시간, 대응 시간, 복구 시간, 전체 사고 지속 시간을 측정할 수 있는 타임스탬프를 제공한다.
+
+확인(Acknowledgement)은 권한을 가진 운영자 또는 자동화 프로세스가 사고를 인지하고 이후 처리에 대한 책임을 받아들였음을 의미한다. 이를 문제 해결(Resolution)과 동일하게 해석해서는 안 된다. 시스템은 누가 언제 이벤트를 확인했는지를 기록해야 하며, 이를 통해 감독자는 아직 대응되지 않은 사고와 이미 조사 중인 문제를 구분할 수 있다. 확인 소요 시간(Time-to-Acknowledge)은 제어실 운영(Control-Room Operation)의 중요한 KPI가 될 수도 있다.
+
+자동 완화(Automated Mitigation)는 잘 이해된 고장 유형에 대한 대응 시간을 줄일 수 있다. FMS는 임무를 일시 정지하거나, 성능이 저하된 로봇에 새로운 작업이 할당되는 것을 중지하거나, 유효하지 않은 예약을 해제하고, 차단된 구역 주변으로 교통을 재라우팅(Rerouting)하거나, 임무를 재할당하거나, 통제된 로봇 복구 절차를 요청할 수 있다. 자동화는 복구 동작이 추가적인 충돌을 만들거나 로봇 내부의 안전 기능을 무시하지 않도록 사전에 정의된 권한 경계(Authority Boundary) 안에서 동작해야 한다.
+
+에스컬레이션(Escalation)은 정의된 시간, 심각도 또는 대응 능력 범위 내에서 사고를 해결할 수 없을 때 필요하다. 경고 상태가 장시간 지속되거나, 반복적으로 재발하거나, 여러 로봇에 영향을 미치거나, 처리량(Throughput)을 감소시키기 시작하면 상위 수준으로 에스컬레이션할 수 있다. 문제 유형에 따라 사고를 운영자에서 유지보수, 엔지니어링, 안전 담당자 또는 관리자로 전달할 수 있다. 명확한 에스컬레이션 정책(Escalation Policy)은 어려운 사고가 확인된 상태로 장기간 해결되지 않은 채 남아 있는 것을 방지한다.
+
+사고 발생 중의 커뮤니케이션(Communication)은 각 팀이 서로 다른 해석을 갖는 것이 아니라 공유된 운영 상황(Shared Operational Picture)을 제공해야 한다. 운영자는 어떤 로봇과 임무가 영향을 받는지 알아야 하고, 유지보수 담당자는 진단 및 서비스 정보가 필요하며, 감독자는 플릿 수준의 영향을 파악해야 한다. 공통 사고 레코드를 사용하면 의견(Comment), 수행 조치(Action), 담당자 변경(Ownership Change), 상태 업데이트를 동일한 이벤트와 연결하면서 감사 가능한 타임라인(Auditable Timeline)을 유지할 수 있다.
+
+복구(Recovery)는 단순히 경보가 사라졌다는 사실이 아니라 검증(Verification)을 필요로 한다. 통신이 복원되거나 위치 추정이 회복되거나 서브시스템이 재시작되더라도 FMS는 로봇이 다시 안전하고 정상적인 운영을 수행할 수 있는지를 확인해야 한다. 여기에는 상태 최신성(State Freshness), 위치 추정 품질, 임무 일관성(Mission Consistency), 자원 소유권(Resource Ownership), 소프트웨어 상태(Software Health), 필수 기능(Required Capability)의 확인이 포함될 수 있다. 원래의 오류 메시지가 사라졌다는 이유만으로 로봇을 정상 작업 할당 대상으로 자동 복귀시켜서는 안 된다.
+
+임무 복구(Mission Recovery)는 이미 수행된 물리적 작업도 고려해야 한다. 적재, 하역, 도킹, 검사 또는 다른 물리적 동작 중에 사고가 발생했다면 임무를 무조건 다시 시작할 경우 작업이 중복될 수 있다. 사고 관리 워크플로는 마지막으로 검증된 실행 지점(Last Verified Execution Point)을 확인하고 로봇, 임무, 적재물(Payload), 인프라 상태를 조정(Reconcile)해야 한다. 그 결과에 따라 임무를 계속 수행하거나, 안전한 체크포인트(Safe Checkpoint)에서 다시 시작하거나, 다른 로봇에 재할당하거나, 운영자의 확인을 요구할 수 있다.
+
+사고 해결(Incident Resolution)은 운영 상태가 복구되었거나 다른 방식으로 통제 가능한 상태가 되었음을 의미한다. 종료(Closure)는 필요한 검증, 문서화(Documentation), 후속 조치(Follow-Up Action)가 완료된 이후에만 이루어져야 한다. 최종 레코드에는 근본 원인(Root Cause), 영향을 받은 구성 요소, 복구 방법, 중단 시간(Downtime), 임무 손실(Mission Loss), 운영자 개입, 시정 조치(Corrective Action)가 포함될 수 있다. 해결과 종료를 분리하면 필요한 경우 엔지니어링 조사가 계속 진행되는 동안에도 운영을 먼저 재개할 수 있다.
+
+과거 사고 데이터(Historical Incident Data)는 신뢰성 개선을 위한 중요한 기반을 제공한다. 반복적으로 발생하는 사고를 분석하면 취약한 구성 요소, 문제가 있는 소프트웨어 릴리스(Software Release), 통신 커버리지 공백(Communication Coverage Gap), 혼잡 구역, 신뢰성이 낮은 충전기, 불충분한 복구 로직을 발견할 수 있다. 사고 발생 빈도(Incident Frequency), 평균 확인 시간(Mean Time To Acknowledge), 평균 복구 시간(Mean Time To Recover), 재발률(Recurrence Rate), 영향을 받은 임무 수, 운영 중단 시간과 같은 지표를 이용하면 시정 조치가 실제로 플릿 성능을 향상시키는지를 측정할 수 있다.
+
+따라서 성숙한 플릿 경보 및 사고 관리 워크플로(Mature Fleet Alert and Incident Management Workflow)는 탐지(Detection), 분류(Classification), 상관관계 분석(Correlation), 우선순위 결정(Prioritization), 확인(Acknowledgement), 완화(Mitigation), 에스컬레이션(Escalation), 복구(Recovery), 검증(Verification), 해결(Resolution), 사고 후 분석(Post-Incident Analysis)을 하나의 추적 가능한 프로세스(Traceable Process)로 연결한다. 목적은 가능한 한 많은 경보를 생성하는 것이 아니라 비정상적인 플릿 동작을 실행 가능한 운영 지식(Actionable Operational Knowledge)으로 변환하는 것이다. 이를 통해 사람과 자동화 서비스가 정상 운영을 신속하게 복구하는 동시에 플릿의 신뢰성과 복원력(Resilience)을 지속적으로 향상시킬 수 있다.
+
+## 01.09 WMS ERP Integration with Fleet Management [w/Code]
+
+![](images/image9.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+창고 관리 시스템(Warehouse Management System, WMS) 및 전사적 자원 관리(Enterprise Resource Planning, ERP) 통합은 로봇 플릿의 실행을 자재 이동을 생성하고 우선순위를 결정하며 검증하는 비즈니스 프로세스와 연결한다. 플릿 관리 시스템(Fleet Management System, FMS)은 엔터프라이즈 수준의 수요와 물리적 로봇 사이에서 동작하며, 물류 요구사항을 실행 가능한 임무(Mission)로 변환하는 동시에 운영 상태, 완료 결과, 예외(Exception), 성능 정보를 상위 시스템(Upstream System)으로 반환한다.
+
+WMS, ERP, FMS의 책임은 명확하게 분리되어야 한다. ERP는 일반적으로 고객 주문(Customer Order), 생산 요구사항(Production Requirement), 구매(Purchasing), 재고 가치(Inventory Value), 전사 트랜잭션(Enterprise Transaction)과 같은 비즈니스 객체(Business Object)를 관리한다. WMS는 창고별 재고 위치, 피킹(Picking), 보충(Replenishment), 스테이징(Staging), 자재 흐름 프로세스(Material-Flow Process)를 관리한다. FMS는 사용 가능한 로봇이 물리적 이동을 어떻게 수행할지를 결정하면서 경로, 교통, 배터리, 기능(Capability), 공유 자원을 조정한다.
+
+일반적인 통합 과정은 ERP 또는 WMS가 물리적 이동을 필요로 하는 비즈니스 수준의 요청(Business-Level Request)을 생성하면서 시작된다. 예를 들어 입고 구역에서 보관 위치로 팔레트를 운반하거나, 생산 라인에 부품을 공급하거나, 피킹 스테이션을 보충하거나, 완제품을 스테이징 구역으로 이동하거나, 출하를 위해 자재를 회수하는 작업이 포함될 수 있다. 요청은 필요한 물류 결과(Logistics Outcome)를 정의하며, FMS는 어떤 로봇이 이동을 수행하고 실행이 어떻게 이루어질지를 결정한다.
+
+통합 경계(Integration Boundary)에서는 로봇 전용 정보에만 의존하지 않고 안정적인 비즈니스 식별자(Business Identifier)를 사용해야 한다. 운송 요청(Transport Request)에는 주문 식별자(Order Identifier), 자재 또는 적재물 식별자(Material or Load Identifier), 출발 위치(Source Location), 목적 위치(Destination Location), 우선순위, 요청 완료 시간(Requested Completion Time), 취급 제약(Handling Constraint), 프로세스 참조 정보(Process Reference)가 포함될 수 있다. 이러한 식별자를 통해 전체 운영 워크플로에서 물리적 로봇 실행을 최초의 창고 또는 엔터프라이즈 트랜잭션과 연결하여 추적할 수 있다.
+
+WMS와 FMS가 동일한 시설을 서로 다른 방식으로 표현할 수 있기 때문에 위치 매핑(Location Mapping)은 필수적이다. WMS는 보관 빈(Storage Bin), 작업 스테이션(Workstation), 스테이징 구역, 생산 위치를 비즈니스 중심의 코드로 식별할 수 있지만, FMS는 지도(Map), 노드(Node), 구역(Zone), 도킹 자세(Docking Pose), 내비게이션 좌표(Navigation Coordinate)를 사용한다. 통합 계층(Integration Layer)은 WMS에 내비게이션 세부 정보를 노출하지 않으면서 논리적인 비즈니스 위치와 로봇이 접근할 수 있는 물리적 목적지 사이의 통제된 매핑을 유지해야 한다.
+
+임무 생성(Mission Creation)은 운송 요청을 로봇이 실행할 수 있는 작업으로 변환한다. 하나의 WMS 요청은 내비게이션(Navigation), 도킹(Docking), 픽업(Pickup), 운송(Transport), 전달(Delivery), 확인(Confirmation), 해제(Release) 동작을 포함하는 하나의 FMS 임무로 변환될 수 있다. 더욱 복잡한 프로세스에서는 여러 로봇이나 장비가 참여하는 여러 개의 종속적인 임무 또는 작업(Task)이 생성될 수 있다. 이러한 변환을 통해 엔터프라이즈 시스템은 개별 로봇의 내비게이션이나 교통 제어 메커니즘을 알 필요 없이 원하는 결과를 요청할 수 있다.
+
+작업 할당(Task Allocation)은 기본적으로 FMS의 책임으로 유지된다. WMS는 비즈니스 우선순위(Business Priority), 완료 기한(Due Time), 자재 제약(Material Constraint), 프로세스 순서(Process Sequence)를 제공할 수 있지만, 운영 아키텍처에서 명시적으로 요구하지 않는 한 일반적으로 특정 로봇을 직접 선택해서는 안 된다. FMS는 요청된 이동에 가장 적합한 로봇을 할당하기 전에 로봇 가용성(Availability), 적재 능력(Payload Capability), 현재 위치, 배터리 상태, 혼잡(Congestion), 유지보수 상태, 작업 부하(Workload)를 평가할 수 있다.
+
+우선순위 변환(Priority Translation)은 비즈니스 우선순위와 로봇 실행 우선순위가 서로 관련되어 있지만 동일하지는 않기 때문에 신중한 거버넌스(Governance)가 필요하다. 긴급한 생산 요청에는 높은 스케줄링 우선순위를 부여할 수 있지만, FMS는 여전히 안전 제약(Safety Constraint), 교통 예약(Traffic Reservation), 자원 소유권(Resource Ownership), 이미 실행이 확정된 물리적 동작을 준수해야 한다. 따라서 통합 로직은 외부 시스템이 플릿 조정 규칙을 우회하도록 허용하는 대신 엔터프라이즈의 긴급도를 통제된 스케줄링 파라미터(Scheduling Parameter)로 변환해야 한다.
+
+실행 상태(Execution Status)는 명확하게 정의된 상태 매핑(State Mapping)을 통해 WMS 및 ERP로 다시 전달되어야 한다. 승인됨(Accepted), 대기열 등록(Queued), 할당됨(Assigned), 실행 중(Executing), 대기 중(Waiting), 완료됨(Completed), 실패함(Failed), 취소됨(Cancelled), 복구 중(Recovering)과 같은 FMS 상태를 상위 워크플로에서 요구하는 상태로 변환할 수 있다. 각 시스템이 동일한 내부 상태 머신(State Machine)을 가질 필요는 없지만, 비즈니스 요청이 언제 승인되고, 물리적으로 시작되며, 성공적으로 완료되거나 더 이상 진행할 수 없는지를 매핑 규칙에서 명확하게 정의해야 한다.
+
+완료 확인(Completion Confirmation)은 물리적 이동이 실제 세계에서 자재의 위치를 변경하기 때문에 특히 중요하다. FMS는 로봇이 단순히 특정 좌표에 도착했을 때가 아니라 정의된 물리적 승인 조건(Physical Acceptance Condition)이 충족된 경우에만 완료를 보고해야 한다. 프로세스에 따라 WMS가 관련 재고 또는 워크플로 상태를 업데이트하기 전에 도킹 확인(Docking Confirmation), 적재물 전달(Load Transfer), 센서 검증(Sensor Verification), 장비 확인 응답(Equipment Acknowledgement) 또는 다른 검증된 이벤트가 필요할 수 있다.
+
+고장 처리(Failure Handling)는 디지털 기록과 물리적 현실 사이의 동기화를 유지해야 한다. 로봇이 팔레트를 픽업한 이후 전달하기 전에 고장난 경우 운송 요청을 단순히 실패로 표시하면 WMS의 표현과 실제 적재물 위치가 일치하지 않을 수 있다. 통합 워크플로는 마지막으로 검증된 프로세스 상태(Last Verified Process State)를 보존하고 예외를 보고하며, 비즈니스 기록이 최종 확정되기 전에 복구(Recovery), 재할당(Reassignment), 수동 확인(Manual Confirmation), 상태 조정(Reconciliation)을 지원해야 한다.
+
+멱등성(Idempotency)은 분산 시스템이 타임아웃(Timeout)이나 일시적인 통신 장애 이후 메시지를 재전송할 수 있기 때문에 필수적이다. 동일한 운송 요청이 반복 제출되더라도 자동으로 중복된 로봇 임무가 생성되어서는 안 되며, 완료 알림이 반복되더라도 중복된 엔터프라이즈 트랜잭션이 발생해서는 안 된다. 고유 요청 식별자(Unique Request Identifier), 상관관계 식별자(Correlation Identifier), 처리 상태(Processing State), 멱등성 규칙(Idempotency Rule)을 사용하면 물리적 작업을 의도하지 않게 반복하지 않으면서 시스템 간 통신을 재시도할 수 있다.
+
+장시간 실행되는 로봇 작업에서는 비동기 통합(Asynchronous Integration)이 적합한 경우가 많다. 운송 임무는 수분 이상이 걸릴 수 있으므로 동기식 트랜잭션(Synchronous Transaction)을 계속 열린 상태로 유지하는 것은 적절하지 않다. ERP 또는 WMS는 요청을 제출하고 확인 응답(Acknowledgement)을 받은 후, 이후의 상태 변화는 이벤트(Event), 메시지 큐(Message Queue), 콜백(Callback), 상태 조회(Status Query)를 통해 전달받을 수 있다. 이를 통해 비즈니스 트랜잭션의 처리 시간과 물리적인 로봇 실행 시간을 분리할 수 있다.
+
+REST API는 요청 생성, 상태 조회, 구성 접근(Configuration Access), 관리 작업(Administrative Operation)을 지원할 수 있으며, 메시지 브로커(Message Broker) 또는 이벤트 스트리밍 플랫폼(Event-Streaming Platform)은 임무 상태 변화와 완료 이벤트를 배포할 수 있다. 구체적인 기술 자체보다 중요한 것은 통합 계약(Integration Contract)이다. 메시지 스키마(Message Schema), 식별자, 상태 의미(State Semantics), 재시도 동작(Retry Behavior), 타임아웃 처리, 버전 관리(Versioning), 인증(Authentication), 오류 응답을 명시적으로 정의하여 비정상 조건에서도 각 시스템이 예측 가능한 방식으로 동작하도록 해야 한다.
+
+통합 또는 오케스트레이션 계층(Integration or Orchestration Layer)은 ERP, WMS, FMS, 시설 시스템 사이의 직접적인 결합(Direct Coupling)을 줄일 수 있다. 이 계층은 스키마 변환(Schema Translation), 위치 매핑, 요청 검증(Request Validation), 상관관계 식별자 관리, 이벤트 라우팅(Event Routing), 비즈니스 변환 규칙(Business Transformation Rule)을 처리할 수 있다. 또한 로봇 전용 개념이 엔터프라이즈 애플리케이션으로 확산되는 것을 방지하고, 연결된 모든 시스템을 동시에 변경하지 않고도 FMS 또는 WMS 구현을 발전시킬 수 있도록 한다.
+
+공유 인프라(Shared Infrastructure)는 WMS-FMS 인터페이스를 넘어서는 조정이 필요할 수 있다. 엘리베이터, 컨베이어(Conveyor), 자동문(Automatic Door), 생산 장비, 보관 시스템(Storage System), 적재 스테이션(Loading Station)이 동일한 자재 흐름 프로세스에 참여할 수 있다. FMS는 이러한 자원과 로봇의 상호작용을 조정하면서 의미 있는 프로세스 이정표(Process Milestone)를 상위 시스템에 보고할 수 있다. 엔터프라이즈 시스템은 임무 실행 과정에서 교환되는 모든 저수준 인프라 명령이 아니라 비즈니스와 관련된 결과를 전달받아야 한다.
+
+재고 무결성(Inventory Integrity)은 통합의 핵심 목표이다. 일반적으로 WMS는 창고 재고 기록(Warehouse Inventory Record)에 대한 권위 있는 시스템(Authoritative System)으로 유지되고, FMS는 로봇 실행과 현재 플릿 운영에 대한 권위 있는 시스템이 된다. 아키텍처에서는 적재물의 관리 책임(Custody) 또는 위치 변경이 정확히 언제 확정되는지와 각 데이터 요소를 어떤 시스템이 소유하는지를 정의해야 한다. 명확한 소유권은 두 시스템이 동일한 비즈니스 사실을 독립적으로 수정하는 것을 방지하고 통신 또는 실행 장애 이후의 상태 조정 문제를 줄인다.
+
+보안 경계(Security Boundary)는 운영 기술(Operational Technology, OT)과 엔터프라이즈 정보기술(Enterprise Information Technology, IT)의 서로 다른 신뢰 영역(Trust Domain)을 반영해야 한다. ERP와 WMS가 로봇 네트워크에 제한 없이 직접 접근할 필요는 없다. API 게이트웨이(API Gateway), 통합 서비스, 인증된 메시징(Authenticated Messaging), 역할 기반 권한 부여(Role-Based Authorization), 암호화 통신(Encrypted Communication), 네트워크 분할(Network Segmentation)을 통해 통제된 정보 교환을 제공할 수 있다. 로봇 영역으로 전달되는 명령은 실제 플릿 운영에 영향을 주도록 허용하기 전에 검증되어야 한다.
+
+관측성(Observability)은 시스템 경계를 넘어 종단 간 추적성(End-to-End Traceability)을 제공해야 한다. 운영자와 엔지니어는 ERP의 비즈니스 주문에서 시작하여 WMS 운송 요청 생성, FMS 임무 생성, 로봇 할당, 물리적 실행, 최종 완료 확인에 이르는 전체 흐름을 추적할 수 있어야 한다. 상관관계 식별자, 타임스탬프, 이벤트 이력(Event History), 구조화된 로그(Structured Log)를 사용하면 여러 시스템의 서로 관련 없는 기록을 수작업으로 재구성하지 않고도 지연이나 고장이 어느 단계에서 발생했는지를 파악할 수 있다.
+
+성능 모니터링(Performance Monitoring)은 엔터프라이즈 대기 시간(Enterprise Waiting Time)과 플릿 실행 시간(Fleet Execution Time)을 구분해야 한다. 하나의 요청은 재고 출고 승인(Inventory Release), 생산 준비(Production Readiness), 로봇 할당, 교통 통행 허가(Traffic Clearance), 물리적 운송, 목적지 승인(Destination Acceptance)을 기다리는 데 각각 시간을 소비할 수 있다. 이러한 단계를 분리하여 측정하면 프로세스의 다른 영역에서 발생한 지연을 로봇 성능 문제로 잘못 판단하는 것을 방지할 수 있다. 또한 이러한 데이터는 처리량 분석(Throughput Analysis), 용량 계획(Capacity Planning), 시스템 간 병목(Cross-System Bottleneck) 식별을 지원한다.
+
+통합 테스트(Integration Testing)는 성공적인 자재 이동뿐만 아니라 비정상적인 워크플로도 포함해야 한다. 중요한 시험 시나리오에는 중복 요청, 잘못된 위치, 사용 가능한 로봇 부재, 차단된 목적지, 확인 응답 손실(Lost Acknowledgement), 지연된 이벤트, 적재물을 운반하는 동안의 로봇 고장, WMS 재시작, FMS 재시작, 일시적인 네트워크 연결 중단이 포함된다. 복구 테스트(Recovery Testing)는 자재 이동을 중복시키거나 누락하지 않으면서 디지털 워크플로 상태를 실제 물리적 상태와 다시 조정할 수 있는지를 확인해야 한다.
+
+따라서 성숙한 WMS, ERP 및 플릿 관리 통합(Mature WMS, ERP, and Fleet-Management Integration)은 비즈니스 수요와 물리적 실행 사이에 폐루프 운영 구조(Closed Operational Loop)를 형성한다. ERP는 엔터프라이즈 의도(Enterprise Intent)를 설정하고, WMS는 창고 프로세스와 재고 컨텍스트를 관리하며, FMS는 운송 요구사항을 조정된 로봇 임무(Coordinated Robotic Mission)로 변환한다. 신뢰할 수 있는 식별자, 상태 매핑, 비동기 이벤트, 소유권 규칙, 복구 로직, 보안, 추적성을 결합하면 디지털 트랜잭션과 실제 물품 이동 사이의 일관성을 유지하면서 전체 시스템을 확장할 수 있다.
+
+## 01.10 Fleet Management Scalability 10 to 1000 Robots
+
+![](images/image10.png){width="7.268055555555556in" height="7.268055555555556in"}
+
+플릿 관리 확장성(Fleet Management Scalability)은 약 10대 규모의 소형 로봇 플릿에서 수백 대 또는 1,000대 규모까지 확장하면서도 응답성(Responsiveness), 운영 신뢰성(Operational Reliability), 조정 품질(Coordination Quality), 유지보수성(Maintainability)을 유지할 수 있는 플릿 관리 시스템(Fleet Management System, FMS)의 능력을 의미한다. 확장성은 단순히 컴퓨팅 자원을 추가한다고 달성되는 것이 아니다. 통신, 상태 관리(State Management), 스케줄링(Scheduling), 교통 제어(Traffic Control), 데이터 처리, 관측성(Observability), 운영 조직 전반의 아키텍처 변화가 필요하다.
+
+10대 규모의 로봇 플릿은 비교적 중앙집중형 아키텍처(Centralized Architecture)를 사용하여 관리할 수 있다. 하나의 FMS 인스턴스가 로봇 상태를 유지하고, 임무를 할당하며, 경로를 계산하고, 배터리를 모니터링하며, 교통을 조정하고, 운영자 시각화(Operator Visualization)를 제공할 수 있다. 메시지 양과 계산 부하는 제한적이며 운영자는 개별 로봇의 동작을 직접 파악할 수 있다. 이러한 아키텍처는 시스템 복잡성을 최소화하고 디버깅(Debugging), 검증(Validation), 통합(Integration)을 단순화하므로 초기 배치 단계에서 유용하다.
+
+플릿 규모가 50\~100대에 가까워지면 로봇 간의 상호작용이 점점 더 중요해진다. 작업 할당(Task Allocation) 결정은 교통에 영향을 주고, 충전 동작은 로봇 가용성(Availability)에 영향을 주며, 여러 차량이 교차로, 복도, 엘리베이터, 도킹 스테이션(Docking Station), 기타 공유 자원을 두고 경쟁하게 된다. 따라서 확장성 문제는 개별 로봇을 효율적으로 관리하는 문제에서 서로의 의사결정에 영향을 미치는 결합된 자원(Coupled Resource)의 증가하는 네트워크를 조정하는 문제로 변화한다.
+
+통신 아키텍처(Communication Architecture)는 규모 증가에 가장 먼저 영향을 받는 영역 중 하나이다. 각 로봇은 위치 및 자세(Pose), 속도, 배터리 상태, 임무 진행 상태, 진단 정보(Diagnostics), 연결 상태(Connectivity), 안전 관련 정보를 지속적으로 발행할 수 있다. 메시지 주기와 페이로드(Payload)가 그대로 유지된다면 전체 통신 트래픽은 플릿 규모에 대략 비례하여 증가한다. 따라서 1,000대의 로봇을 지원하는 시스템에서는 모든 텔레메트리 업데이트를 모든 서비스에 전달하는 대신 발행 주기, 메시지 크기, 구독 범위(Subscription Scope), 보존 정책(Retention), 처리 비용을 제어해야 한다.
+
+발행-구독 아키텍처(Publish-Subscribe Architecture)는 생산자(Producer)와 소비자(Consumer)를 느슨하게 결합할 수 있기 때문에 대규모 플릿에 적합하다. 메시지 브로커(Message Broker)는 토픽(Topic) 또는 구독 요구사항에 따라 로봇 상태, 임무 이벤트, 경보, 인프라 정보를 배포할 수 있다. 그러나 하나의 브로커가 무한정 확장될 수 있다고 가정해서는 안 된다. 메시지 전송률과 연결된 엔드포인트(Endpoint)가 증가할수록 브로커 클러스터링(Broker Clustering), 파티셔닝(Partitioning), 부하 분산(Load Balancing), 영속성 정책(Persistence Policy), 장애 복구(Failure Recovery)가 점점 더 중요해진다.
+
+로봇 상태 관리(Robot State Management) 역시 발전해야 한다. 소규모 시스템에서는 대부분의 플릿 상태를 하나의 애플리케이션 프로세스 내부에서 유지할 수 있지만, 플릿이 커질수록 이러한 방식은 확장과 복구가 어려워진다. 대규모 시스템에서는 일시적인 실시간 상태(Transient Real-Time State), 영속적인 운영 기록(Persistent Operational Record), 임무 이력(Mission History), 구성(Configuration), 분석 데이터(Analytical Data)를 분리하는 것이 유리하다. 각 데이터 유형은 일관성(Consistency), 지연시간(Latency), 내구성(Durability), 조회 요구사항이 서로 다르므로 반드시 동일한 저장 메커니즘을 사용할 필요는 없다.
+
+상태 업데이트 주기(State Update Frequency)는 운영상의 가치에 따라 결정해야 한다. 로봇 위치 및 자세는 초당 여러 번 변화할 수 있지만 배터리 비율, 임무 상태 전환(Mission Transition), 유지보수 상태, 소프트웨어 구성은 훨씬 낮은 빈도로 변화한다. 고주파 데이터(High-Frequency Data)는 전역 서비스(Global Service)에 도달하기 전에 로봇 또는 엣지 계층(Edge Layer) 가까이에서 샘플링(Sampling), 집계(Aggregation), 처리할 수 있다. 중요한 상태 전환은 과도한 텔레메트리 감소로 인해 주요 운영 변화가 지연되지 않도록 이벤트 구동 방식(Event-Driven)으로 유지해야 한다.
+
+로봇 수와 임무 수요가 증가하면 작업 할당은 계산 측면에서 더욱 복잡해진다. 모든 대기 임무를 모든 사용 가능한 로봇과 비교하는 방식은 특히 기능(Capability), 배터리, 거리, 교통, 마감시간(Deadline), 적재물, 자원 제약을 함께 고려할 경우 높은 계산 비용을 발생시킬 수 있다. 확장 가능한 스케줄러(Scalable Scheduler)는 구역화(Zoning), 후보 필터링(Candidate Filtering), 계층형 할당(Hierarchical Allocation), 배치 처리(Batching), 증분 최적화(Incremental Optimization), 전역 스케줄링 문제의 분해(Decomposition)를 통해 탐색 공간(Search Space)을 줄일 수 있다.
+
+중앙집중형 최적화(Centralized Optimization)는 여전히 플릿 전체에 유용한 의사결정을 제공할 수 있지만 모든 의사결정을 전역 수준에서 수행해야 하는 것은 아니다. 계층형 FMS(Hierarchical FMS)는 사이트 또는 구역 수준에서 작업을 할당하고 로컬 스케줄러(Local Scheduler)가 해당 운영 영역 내에서 로봇을 선택하도록 구성할 수 있다. 전역 서비스는 작업 부하 균형(Workload Balancing)과 구역 간 이동(Cross-Zone Transfer)을 관리하고 로컬 컨트롤러는 빠른 의사결정을 담당할 수 있다. 이러한 분해는 계산 복잡성을 줄이고 개별 서비스 장애가 운영에 미치는 영향을 제한한다.
+
+교통 관리(Traffic Management)는 순수한 컴퓨팅 용량보다 먼저 주요 확장성 문제로 등장하는 경우가 많다. 10대의 로봇은 비교적 단순한 예약 로직(Reservation Logic)으로 시설을 공유할 수 있지만 수백 대의 로봇은 매우 많은 상호작용 경로와 자원 충돌을 발생시킨다. 로봇을 계속 추가하면 어느 시점부터 처리량 증가가 아니라 혼잡(Congestion)이 발생한다. 따라서 확장 가능한 교통 제어는 구조화된 경로 그래프(Route Graph), 예약 호라이즌(Reservation Horizon), 교차로 관리(Intersection Management), 혼잡 인식 경로 계획(Congestion-Aware Routing), 교착 상태(Deadlock) 탐지 및 방지 메커니즘을 필요로 한다.
+
+공간 분할(Spatial Decomposition)은 교통 제어의 복잡성을 줄일 수 있다. 대규모 시설을 구역(Zone), 섹터(Sector), 층(Floor), 교통 도메인(Traffic Domain)으로 분할하고 각 영역 사이에 통제된 인터페이스를 구성할 수 있다. 로컬 교통 컨트롤러(Local Traffic Controller)는 자신의 도메인 내부의 예약을 관리하고 경계 조정(Boundary Coordination)은 영역 간 로봇 이동을 관리한다. 이러한 방식은 각 컨트롤러가 동시에 고려해야 하는 상호작용 로봇의 수를 제한하고 시설의 서로 다른 영역이 일정 수준 독립적으로 운영될 수 있도록 한다.
+
+플릿 규모가 증가할수록 공유 자원(Shared Resource)의 중요성도 커진다. 충전기, 엘리베이터, 자동문, 컨베이어(Conveyor), 도킹 스테이션, 적재 구역, 생산 장비는 로봇 용량이 충분하더라도 병목(Bottleneck)이 될 수 있다. 자원 관리자(Resource Manager)는 명시적인 예약, 소유권(Ownership), 대기열(Queue), 타임아웃(Timeout), 해제(Release) 상태를 유지해야 한다. 이러한 공유 자원을 확장하거나 최적화하지 않은 상태에서 로봇 수만 늘리면 전체 처리량이 증가하는 대신 오히려 감소할 수 있다.
+
+충전 조정(Charging Coordination)은 이러한 현상을 명확하게 보여준다. 10대의 로봇은 단순한 저전압 배터리 임계값(Low-Battery Threshold)만으로도 성공적으로 운영될 수 있지만 수백 대의 로봇이 유사한 임계값에 동시에 반응하면 충전 수요가 동기화(Synchronized Charging Demand)될 수 있다. 확장 가능한 에너지 관리자(Energy Manager)는 예상 임무 수요, 충전기 가용성, 배터리 상태, 충전 시간, 이동 거리, 향후 작업 부하를 고려할 수 있다. 분산 충전(Staggered Charging) 또는 기회 충전(Opportunity Charging)을 사용하면 충분한 활성 플릿 용량을 유지하면서 충전 수요를 분산할 수 있다.
+
+서비스 분해(Service Decomposition)는 FMS가 계속해서 하나의 거대한 애플리케이션으로 성장하는 것을 방지하는 데 도움이 된다. 임무 관리, 작업 할당, 교통 제어, 로봇 레지스트리(Robot Registry), 자원 관리, 충전, 경보 관리, 텔레메트리 처리, 시각화, 분석 기능을 명확한 도메인 책임(Domain Responsibility)에 따라 분리할 수 있다. 과도한 마이크로서비스 분할(Microservice Fragmentation)이 반드시 필요한 것은 아니지만, 운영상 필요한 경우 핵심 기능을 독립적으로 확장, 재시작, 배포, 모니터링할 수 있을 정도로 분리해야 한다.
+
+수평 확장(Horizontal Scaling)을 위해서는 서비스가 로컬 프로세스 상태(Local Process State)에 불필요하게 의존하지 않도록 해야 한다. 무상태 API 서비스(Stateless API Service)는 부하 분산기(Load Balancer) 뒤에서 복제할 수 있지만, 상태 저장 서비스(Stateful Service)는 통제된 파티셔닝, 복제(Replication), 리더 메커니즘(Leader Mechanism)을 필요로 한다. 로봇 소유권(Robot Ownership)은 사이트, 구역, 플릿 그룹 또는 일관된 식별자를 기준으로 분할할 수 있다. 또한 장애 조치(Failover) 과정에서 두 개의 컨트롤러가 동일한 로봇에 충돌하는 명령을 내리지 않도록 소유권이 어떻게 이전되는지를 정의해야 한다.
+
+데이터베이스 확장성(Database Scalability)도 이와 유사하게 작업 부하를 분리해야 한다. 트랜잭션 기반의 임무 및 구성 기록은 일관성과 내구성을 요구하는 반면, 대용량 텔레메트리는 시계열(Time-Series) 또는 스트리밍 저장 방식(Streaming Storage Pattern)에 더 적합하다. 과거 분석 데이터는 별도의 분석 저장소(Analytical Store)로 이동시켜 실시간 플릿 운영과 자원을 경쟁하지 않도록 할 수 있다. 데이터 보존 정책(Data Retention Policy)은 어떤 고주파 신호를 전체 보존하고 어떤 데이터를 일정 기간 이후 집계할지를 결정해야 한다.
+
+운영자 확장성(Operator Scalability)은 소프트웨어 확장성만큼 중요하다. 사람은 10대의 로봇을 개별적으로 확인할 수 있지만 이러한 운영 모델은 1,000대 규모에서는 작동하지 않는다. 대규모 플릿 인터페이스는 모든 로봇을 동일하게 지속 표시하기보다 예외(Exception), 사고(Incident), 혼잡, 지연된 임무, 사용할 수 없는 자원, 성능 이상(Performance Deviation)을 강조해야 한다. 계층형 대시보드(Hierarchical Dashboard), 필터링, 클러스터링(Clustering), 역할 기반 화면(Role-Based View), 자동 사고 상관관계 분석(Automated Incident Correlation)을 활용하면 제한된 운영 인력으로 훨씬 큰 자율 로봇 플릿을 감독할 수 있다.
+
+배치 규모가 커질수록 장애 영역(Failure Domain)은 더 작아져야 한다. 하나의 중앙 구성 요소 고장으로 10대의 로봇이 정지하는 것도 바람직하지 않지만 동일한 고장으로 1,000대가 정지하는 것은 운영상 허용하기 어려울 수 있다. 사이트 및 구역 수준의 격리(Isolation), 이중화된 통신 서비스(Redundant Communication Service), 복제 데이터베이스, 로컬 자율성(Local Autonomy), 통제된 성능 저하 모드(Controlled Degraded Mode)를 통해 개별 장애가 플릿 전체의 중단으로 확대되는 것을 방지할 수 있다. 전역 서비스를 일시적으로 사용할 수 없더라도 로봇은 충분한 로컬 안전 및 모션 기능을 유지해야 한다.
+
+복구 동작(Recovery Behavior) 역시 규모에 맞게 확장되어야 한다. 수백 개의 활성 임무를 담당하는 컨트롤러를 재시작하려면 물리적 동작을 중복시키지 않으면서 로봇 상태, 임무 소유권, 예약, 공유 자원 상태를 재구성해야 한다. 영속적인 식별자(Persistent Identifier), 이벤트 이력(Event History), 체크포인트(Checkpoint), 멱등성 명령(Idempotent Command), 임대 권한(Lease), 상태 조정 절차(Reconciliation Procedure)를 통해 서비스가 권위 있는 상태(Authoritative State)를 복구할 수 있다. 대규모 시스템은 재구성해야 하는 상태 자체가 많으므로 복구 시간(Recovery Time)도 확장성 지표로 취급해야 한다.
+
+대규모 환경에서는 소프트웨어 배포(Software Deployment)의 민감도도 증가한다. 10대의 로봇을 동시에 업데이트하는 것은 관리 가능할 수 있지만 잘못된 릴리스를 1,000대에 배포하면 플릿 전체의 사고로 이어질 수 있다. 단계적 배포(Staged Rollout), 호환성 검사(Compatibility Checking), 카나리 배포(Canary Deployment), 롤백(Rollback), 구성 버전 관리(Configuration Versioning), 플릿 분할(Fleet Segmentation)을 통해 배포 위험을 줄일 수 있다. FMS 서비스는 통제된 업그레이드 과정에서 서로 다른 로봇 소프트웨어 버전이 일시적으로 공존하는 상황도 허용해야 한다.
+
+관측성(Observability)은 개별 로봇 디버깅에서 분산 시스템 모니터링(Distributed-System Monitoring)으로 발전해야 한다. 측정 지표에는 메시지 전송률(Message Rate), 큐 깊이(Queue Depth), 서비스 지연시간(Service Latency), 데이터베이스 부하, 스케줄러 처리 시간(Scheduler Time), 예약 충돌(Reservation Conflict), 로봇 연결 상태, 임무 백로그(Mission Backlog), 오류율(Error Rate), 자원 활용률(Resource Utilization)이 포함되어야 한다. 분산 추적(Distributed Tracing)과 상관관계 식별자(Correlation Identifier)를 이용하면 비즈니스 요청에서 임무 생성, 할당, 로봇 실행, 완료까지 연결하여 추적할 수 있다. 이를 통해 용량 추세(Capacity Trend)를 분석하여 어떤 서브시스템이 가장 먼저 포화 상태(Saturation)에 접근하는지를 파악할 수 있다.
+
+확장성 테스트(Scalability Testing)는 단순히 많은 수의 로봇이 연결된 상태만 시뮬레이션하는 것이 아니라 실제적인 상호작용 패턴(Interaction Pattern)을 재현해야 한다. 의미 있는 1,000대 규모의 테스트에는 임무 생성, 교통 충돌, 충전, 고장, 재연결(Reconnection), 공유 자원, 상태 업데이트, 운영자 조회, 데이터베이스 쓰기 작업이 포함되어야 한다. 부하 테스트(Load Testing)는 포화 지점과 성능 저하 동작(Degraded Behavior)을 식별하여 실제 운영 환경이 해당 규모에 도달하기 전에 아키텍처의 한계를 이해할 수 있도록 해야 한다.
+
+따라서 10대에서 1,000대 로봇으로의 전환은 중앙집중형 로봇 감독(Centralized Robot Supervision)에서 분산형 플릿 오케스트레이션(Distributed Fleet Orchestration)으로 발전하는 과정이다. 소규모 플릿에서는 단순성이 중요하지만 중규모 플릿에서는 보다 강력한 스케줄링, 교통, 자원 관리가 필요하다. 대규모 플릿에서는 계층형 제어(Hierarchical Control), 분할된 상태(Partitioned State), 확장 가능한 메시징(Scalable Messaging), 장애 격리(Failure Isolation), 자동화된 운영(Automated Operations), 예외 중심의 인간 감독(Exception-Oriented Human Supervision)이 점점 더 중요해진다. 목표는 단순히 더 많은 로봇을 연결하는 것이 아니라 시스템 복잡성이 증가하더라도 예측 가능한 성능과 운영 통제력을 유지하는 것이다.
